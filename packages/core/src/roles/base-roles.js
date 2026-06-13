@@ -71,14 +71,14 @@
     },
 
     {
-      id: 'mason', name: 'Mason', team: 'village', wake: 4, maxCopies: 2, requiresEven: true,
+      id: 'mason', name: 'Mason', team: 'village', wake: 4, maxCopies: 2,
       narrationGroup: 'mason',
       blurb: 'You and the other Mason know each other to be on the village team.',
       prompt: 'Find the other Mason.',
       narration: { open: 'Masons, wake up and look for the other Mason.', close: 'Masons, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.identifyAllies(function (s) { return ctx.actingRole(s) === 'mason'; }); },
-      validate: function (q) { if (q.counts.mason === 1) return [{ level: 'error', text: 'Masons come as a pair — use 0 or 2.' }]; return []; }
+      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair — use 0 or 2.' }]; return []; }
     },
 
     {

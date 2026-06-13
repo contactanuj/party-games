@@ -46,7 +46,16 @@
     else html = renderHome();
     app.innerHTML = html;
     bind();
-    window.scrollTo(0, 0);
+    // Only jump to the top when the LOGICAL screen changes — selecting an input or editing the
+    // setup re-renders the same screen and must preserve the player's scroll position.
+    var key = screenKey();
+    if (key !== ui._lastKey) { window.scrollTo(0, 0); ui._lastKey = key; }
+    manageTurnTimer();
+  }
+  function screenKey() {
+    var k = view;
+    if (view === 'play' && G) { k += ':' + G.phase; if (ui.flow) k += ':' + ui.flow.kind + ':' + ui.flow.stage + ':' + (ui.flow.idx == null ? '' : ui.flow.idx); }
+    return k;
   }
 
   // =========================================================================
@@ -100,6 +109,7 @@
   function newDraft(pc) {
     var c = E.defaultConfig(pc);
     c.botCount = 0;
+    if (c.turnTimerSeconds == null) c.turnTimerSeconds = 30; // roles are timed by default
     return c;
   }
   function applyBotNames(d) {
@@ -149,13 +159,17 @@
       // Options
       optionsBlock() +
 
+      // Per-turn role timer (each player's secret action is timed; auto-advances on expiry)
+      '<label class="field">Per-turn timer (each role\'s action)</label>' +
+      '<div class="stepper panel"><button class="stepbtn" data-act="tt-">−</button><span class="val">' + (draft.turnTimerSeconds ? draft.turnTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="tt+">+</button></div>' +
+
       // Day timer
       '<label class="field">Day discussion timer</label>' +
       '<div class="stepper panel"><button class="stepbtn" data-act="t-">−</button><span class="val">' + (draft.dayTimerSeconds ? draft.dayTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="t+">+</button></div>' +
 
-      // Validation + start
+      // Validation + start (Start is disabled — not just an error at the bottom — until the setup is legal)
       renderValidation(v) +
-      '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>Start game</button>'
+      '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : 'Fix the setup above to start') + '</button>'
     );
   }
 
@@ -244,6 +258,7 @@
     // show role privately
     var r = REG[p.dealtRole];
     return screen(true,
+      timerBadge() +
       '<p class="muted">' + esc(p.name) + ', your secret role is</p>' +
       '<div class="big-role">' + esc(r.name) + '</div>' +
       '<p class="muted" style="max-width:340px">' + esc(r.blurb || '') + '</p>' +
@@ -262,7 +277,7 @@
     if (G.config.hideRoleHolders !== false) {
       G.players.forEach(function (p) {
         if (!p.bot && !actionSeats[p.seat]) { // decoy for a human with no night action
-          var pos = Math.floor(Math.random() * (result.length + 1));
+          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded — deterministic + unpredictable
           result.splice(pos, 0, { kind: 'decoy', seat: p.seat });
         }
       });
@@ -279,8 +294,16 @@
     // re-wake added one, or trailing bot steps), resolve bots then append human steps.
     if (f.idx >= f.plan.length) {
       E.autoResolveBotNight(G);
-      if (E.currentStep(G)) { f.plan.push({ kind: 'real', seat: E.currentStep(G).seat }); }
-      else { ui.flow = null; save(); return renderDay(); }
+      if (E.currentStep(G)) {
+        var rwSeat = E.currentStep(G).seat;
+        f.plan.push({ kind: 'real', seat: rwSeat });
+        // A re-wake (e.g. Doppelgänger copying a late role) would otherwise hand the device to one
+        // player a second time, leaking who they are. Dilute it with a decoy handoff for someone else.
+        if (G.config.hideRoleHolders !== false) {
+          var others = G.players.filter(function (p) { return !p.bot && p.seat !== rwSeat; });
+          if (others.length) f.plan.push({ kind: 'decoy', seat: others[E.randInt(G, others.length)].seat });
+        }
+      } else { ui.flow = null; save(); return renderDay(); }
     }
     var entry = f.plan[f.idx];
     var liveStep = (entry.kind === 'real') ? E.getStep(G) : null;
@@ -294,6 +317,7 @@
     }
     if (entry.kind === 'decoy') {
       return screen(true,
+        timerBadge() +
         '<p class="muted">Night</p><div class="big-role">…</div>' +
         '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along — don\'t let anyone read your screen.</p>' +
         '<button class="btn secondary" data-act="night-next">Pass on</button>'
@@ -309,6 +333,7 @@
     ui.inputs = ui.inputs || {};
     if (step.feared) {
       return screen(true,
+        timerBadge() +
         '<p class="muted">Your secret role</p>' +
         '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
         '<div class="panel">You carry the <b>Mark of Fear</b> — you cannot use your power tonight.</div>' +
@@ -318,6 +343,7 @@
     var inputsHtml = step.inputs.map(function (spec) { return renderInput(spec); }).join('');
     var canConfirm = clientInputsValid(step.inputs, ui.inputs);
     return screen(false,
+      timerBadge() +
       '<p class="muted">Your secret role</p>' +
       '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
       '<p class="small muted">' + esc(step.prompt) + '</p>' +
@@ -368,6 +394,7 @@
     var lines = (facts || []).map(factText).filter(Boolean);
     if (!lines.length) lines = ['Done.'];
     return screen(true,
+      timerBadge() +
       '<p class="muted">You learned</p>' +
       lines.map(function (l) { return '<div class="panel">' + esc(l) + '</div>'; }).join('') +
       '<div class="divider"></div>' +
@@ -406,7 +433,7 @@
       .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' — ' + esc(r.roleName); }));
     var revealed = revLines.length ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + revLines.join('<br>') + '</div>' : '';
     return screen(true,
-      '<h1>Daybreak</h1>' +
+      '<h1>Morning</h1>' +
       '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +
       revealed +
       timer +
@@ -577,6 +604,8 @@
       case 'bot-': setBots((draft.botCount || 0) - 1); break;
       case 't+': draft.dayTimerSeconds = Math.min(600, (draft.dayTimerSeconds || 0) + 30); render(); break;
       case 't-': draft.dayTimerSeconds = Math.max(0, (draft.dayTimerSeconds || 0) - 30); render(); break;
+      case 'tt+': draft.turnTimerSeconds = Math.min(180, (draft.turnTimerSeconds || 0) + 15); render(); break;
+      case 'tt-': draft.turnTimerSeconds = Math.max(0, (draft.turnTimerSeconds || 0) - 15); render(); break;
       case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre; render(); break; }
       case 'start': startGame(); break;
 
@@ -721,6 +750,44 @@
     }, 1000);
   }
   function stopTimer() { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } }
+
+  // ---- per-turn role timer (each player's private reveal / night action is timed) ----
+  var turnHandle = null;
+  function timerBadge() {
+    var secs = (G && G.config && G.config.turnTimerSeconds) || 0;
+    if (!secs) return '';
+    return '<div class="small muted" style="text-align:right;font-weight:800" id="turnTimer">⏳ ' + secs + 's</div>';
+  }
+  function turnTimeoutAction() {
+    if (view !== 'play' || !G || !ui.flow) return null;
+    var f = ui.flow;
+    if (f.kind === 'reveal' && f.stage === 'show') return function () { onAct('reveal-next'); };
+    if (f.kind === 'night') {
+      if (f.stage === 'decoy' || f.stage === 'result') return function () { onAct('night-next'); };
+      if (f.stage === 'act') return function () {
+        var step = E.getStep(G);
+        if (!step || step.feared) { onAct('act-confirm'); return; }
+        try { ui.inputs = E.botInputsForCurrent(G); } catch (e) { ui.inputs = {}; }
+        onAct('act-confirm');
+      };
+    }
+    return null;
+  }
+  function manageTurnTimer() {
+    stopTurnTimer();
+    var secs = (G && G.config && G.config.turnTimerSeconds) || 0;
+    if (!secs) return;
+    var onExpire = turnTimeoutAction();
+    if (!onExpire) return;
+    var left = secs;
+    turnHandle = setInterval(function () {
+      left--;
+      var el = app.querySelector('#turnTimer'); if (el) el.textContent = '⏳ ' + Math.max(0, left) + 's';
+      if (left <= 3 && left > 0) S.play('tick');
+      if (left <= 0) { stopTurnTimer(); onExpire(); }
+    }, 1000);
+  }
+  function stopTurnTimer() { if (turnHandle) { clearInterval(turnHandle); turnHandle = null; } }
 
   // Start the day timer when entering the day screen (digital mode).
   var _origRenderDay = renderDay;

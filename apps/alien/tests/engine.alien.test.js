@@ -75,6 +75,12 @@ section('Synthetic catastrophe');
   killSeat(s, 0);
   ok(W(s) === 'synth', 'Synthetic dying => only the Synthetic wins (alien & village both lose)');
 })();
+(function () {
+  // a surviving Synthetic is the ONLY alien-flagged player => the alien TEAM must not "win"
+  var s = game(['synthetic', 'villager', 'seer', 'robber', 'villager']);
+  killSeat(s, 1);
+  ok(W(s).indexOf('alien') === -1, 'a lone surviving Synthetic does not hand the alien team a phantom win');
+})();
 
 // ---------------------------------------------------------------------------
 section('Blob cluster & Mortician');

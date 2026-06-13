@@ -5,5 +5,6 @@
   "bgColor": "#0e1117",
   "accent": "#b23b3b",
   "version": "1.0.0",
+  "customIcon": true,
   "icon": { "emblem": "moon", "bg": ["#22314f", "#0a0e16"], "fg": "#ecd9a0", "accent": "#0a0e16" }
 }

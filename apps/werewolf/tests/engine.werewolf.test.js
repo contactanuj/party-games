@@ -230,6 +230,8 @@ ok(winnersOf(outcome(['werewolf', 'tanner', 'villager', 'seer', 'villager'], [0,
 // minion present, no werewolves in play, a non-minion dies -> werewolf team (minion) wins
 ok(winnersOf(outcome(['minion', 'seer', 'villager', 'robber', 'villager'], [1])) === 'werewolf',
   'Minion with no Werewolves in play: a non-minion dies => werewolf team wins');
+ok(winnersOf(outcome(['minion', 'seer', 'villager', 'robber', 'villager'], [0])) === 'village',
+  'Minion with no Werewolves in play: lynching the Minion => village wins (not a no-winner game)');
 
 // Hunter: dies and takes their vote target with them (which is a werewolf) -> village wins
 (function () {

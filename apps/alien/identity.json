@@ -5,5 +5,6 @@
   "bgColor": "#04121a",
   "accent": "#39c08a",
   "version": "1.0.0",
+  "customIcon": true,
   "icon": { "emblem": "saucer", "bg": ["#0e3a52", "#03101a"], "fg": "#7CFFB2", "accent": "#03101a" }
 }

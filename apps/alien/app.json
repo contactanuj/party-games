@@ -15,9 +15,14 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "androidStatusBar": {
+      "translucent": false,
+      "backgroundColor": "#04121a",
+      "barStyle": "light-content"
+    },
     "android": {
       "package": "com.partydeck.alien",
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#04121a"
@@ -35,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#04121a",
+      "barStyle": "light-content"
+    }
   }
 }

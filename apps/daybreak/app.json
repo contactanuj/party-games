@@ -15,9 +15,14 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "androidStatusBar": {
+      "translucent": false,
+      "backgroundColor": "#1a1206",
+      "barStyle": "light-content"
+    },
     "android": {
       "package": "com.partydeck.daybreak",
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#1a1206"
@@ -35,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#1a1206",
+      "barStyle": "light-content"
+    }
   }
 }

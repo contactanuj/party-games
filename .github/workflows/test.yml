@@ -1,0 +1,24 @@
+name: test
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      # Install the workspace (creates the @partydeck/core symlink so bare requires resolve).
+      # The tests themselves are dependency-free Node and also work via a relative fallback.
+      - run: npm install --no-audit --no-fund
+      # Every app.html must compose (this also runs the </script> + theme-token build guards).
+      - run: npm run build:all
+      # Core framework tests + every game's engine + UI smoke tests (fuzz / win-matrix /
+      # determinism / JSON round-trip / no-leak).
+      - run: npm test

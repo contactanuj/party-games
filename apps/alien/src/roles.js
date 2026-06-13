@@ -172,11 +172,17 @@
 
     var winners = {}; function add(t) { winners[t] = true; }
     var someoneDied = deaths.length > 0;
-    var aliensInPlay = 0, anyAlienDied = false;
-    for (s = 0; s < pc; s++) if (isAlien(s)) { aliensInPlay++; if (died(s)) anyAlienDied = true; }
+    // "alien in play" for village/alien outcome means a seat actually on the ALIEN TEAM — the
+    // Synthetic carries the alien flag for night/targeting but is solo, so it must NOT make the
+    // alien team "win" on its own.
+    var aliensInPlay = 0, anyAlienDied = false, alienTeamInPlay = 0;
+    for (s = 0; s < pc; s++) {
+      if (isAlien(s)) { aliensInPlay++; if (died(s)) anyAlienDied = true; }
+      if (H.finalTeamOf(s) === 'alien') alienTeamInPlay++;
+    }
 
     var villageWins = anyAlienDied || (aliensInPlay === 0 && !someoneDied);
-    var alienWins = aliensInPlay > 0 && !anyAlienDied;
+    var alienWins = alienTeamInPlay > 0 && !anyAlienDied;
 
     // Synthetic catastrophe: if it dies, only it wins; alien & village both lose.
     var synthSeat = -1; for (s = 0; s < pc; s++) if (role(s) === 'synthetic') synthSeat = s;

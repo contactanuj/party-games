@@ -15,9 +15,14 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "androidStatusBar": {
+      "translucent": false,
+      "backgroundColor": "#0e1117",
+      "barStyle": "light-content"
+    },
     "android": {
       "package": "com.partydeck.werewolf",
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0e1117"
@@ -35,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#0e1117",
+      "barStyle": "light-content"
+    }
   }
 }

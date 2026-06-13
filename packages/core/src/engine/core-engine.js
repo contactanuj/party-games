@@ -622,18 +622,19 @@
         var wake = REG[ins.roleId].wake;
         var insertAt;
         if (REG[ins.roleId].copyImmediate) {
-          // Immediate copies (Seer/Robber/Troublemaker/Drunk) act right now, before the
-          // night proceeds — exactly as the Doppelgänger does at the table.
-          insertAt = state.cursor + 1;
+          // Immediate copies (Seer/Robber/Troublemaker/Drunk) act right now, as the very next
+          // step — exactly as the Doppelgänger does at the table (cursor already points past the
+          // Doppelgänger's own step, so `cursor` is the next-to-run slot).
+          insertAt = state.cursor;
         } else {
           // Group/late copies (Werewolf/Minion/Mason/Insomniac) re-wake at the copied role's
           // natural wake position (after a same-wake dealt step), so allies/own-card resolve.
           insertAt = state.schedule.length;
-          for (var i = state.cursor + 1; i < state.schedule.length; i++) {
+          for (var i = state.cursor; i < state.schedule.length; i++) {
             if (state.schedule[i].wake > wake) { insertAt = i; break; }
           }
         }
-        if (insertAt <= state.cursor) insertAt = state.cursor + 1; // never re-run a passed step
+        if (insertAt < state.cursor) insertAt = state.cursor; // never re-run a passed step
         state.schedule.splice(insertAt, 0, {
           seat: ins.seat, roleId: ins.roleId, wake: wake,
           origin: 'rewake', done: false
@@ -838,6 +839,7 @@
       if (wwSeats.length === 0 && minionSeats.length > 0) {
         var nonMinionDied = deaths.some(function (d) { return minionSeats.indexOf(d) === -1; });
         if (nonMinionDied) werewolfWin = true;
+        else if (someoneDied) villageWin = true; // the village lynched only the Minion — they win
       }
 
       // ---- tanner (solo): wins iff a tanner dies; suppresses the werewolf win unless a
@@ -1124,6 +1126,9 @@
       publicView: publicView,
       privateReveal: privateReveal,
       endReveal: endReveal,
+      // seeded RNG (for deterministic UI decisions like decoy-handoff placement)
+      rand: function (state) { return nextRand(state); },
+      randInt: function (state, n) { return randInt(state, n); },
       // util
       serialize: function (state) { return JSON.stringify(state); },
       deserialize: function (s) { return JSON.parse(s); },

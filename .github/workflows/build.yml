@@ -1,0 +1,71 @@
+name: build
+
+# Builds Android APK/AAB for the apps that changed, via EAS (hosted on expo.dev).
+# A core change rebuilds every app; an app change rebuilds just that app; a release tag
+# like `werewolf-v1.2.0` builds just that app.
+on:
+  push:
+    tags: ['*-v*']
+  workflow_dispatch:
+    inputs:
+      app:
+        description: app to build (werewolf|daybreak|vampire|alien|all)
+        default: all
+      profile:
+        description: eas profile (preview=apk, production=aab)
+        default: preview
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.decide.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            werewolf: ['apps/werewolf/**', 'packages/core/**']
+            daybreak: ['apps/daybreak/**', 'packages/core/**']
+            vampire:  ['apps/vampire/**',  'packages/core/**']
+            alien:    ['apps/alien/**',    'packages/core/**']
+      - id: decide
+        shell: bash
+        run: |
+          # A release tag (werewolf-v*) or a manual single-app dispatch overrides the path filter.
+          TAG="${GITHUB_REF#refs/tags/}"; TAGAPP="${TAG%%-v*}"
+          DISPATCH="${{ github.event.inputs.app }}"
+          if [ -n "$DISPATCH" ] && [ "$DISPATCH" != "all" ]; then echo "apps=[\"$DISPATCH\"]" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if echo "$GITHUB_REF" | grep -q '^refs/tags/'; then echo "apps=[\"$TAGAPP\"]" >> "$GITHUB_OUTPUT"; exit 0; fi
+          APPS=()
+          for a in werewolf daybreak vampire alien; do
+            if [ "$(eval echo \${{ steps.filter.outputs.$a }} 2>/dev/null)" = "true" ]; then APPS+=("\"$a\""); fi
+          done
+          if [ ${#APPS[@]} -eq 0 ]; then echo "apps=[]" >> "$GITHUB_OUTPUT"; else printf 'apps=[%s]\n' "$(IFS=,; echo "${APPS[*]}")" >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: changes
+    if: ${{ needs.changes.outputs.apps != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm install --no-audit --no-fund
+      - run: npm run gen:config -w ${{ matrix.app }}
+      - run: npm run build:html -w ${{ matrix.app }}
+      - run: npm test -w ${{ matrix.app }}          # gate the app before spending a build
+      - working-directory: apps/${{ matrix.app }}
+        run: npx eas build -p android --profile "${{ github.event.inputs.profile || 'production' }}" --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
