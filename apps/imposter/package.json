@@ -1,0 +1,29 @@
+{
+  "name": "imposter",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "gen:config": "node ../../packages/core/build/make-app-json.js",
+    "gen:icon": "node scripts/make-icon.js",
+    "build:html": "node build.js",
+    "test": "node tests/engine.imposter.test.js && node tests/ui.imposter.smoke.test.js",
+    "start": "npm run gen:config && npm run build:html && expo start",
+    "android": "npm run gen:config && npm run build:html && expo run:android",
+    "build:android": "npm run gen:config && npm run gen:icon && npm run build:html && eas build -p android --profile preview"
+  },
+  "dependencies": {
+    "@partydeck/core": "*",
+    "expo": "~51.0.28",
+    "expo-asset": "~10.0.10",
+    "expo-file-system": "~17.0.1",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-webview": "13.8.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "eas-cli": "^13.0.0"
+  }
+}

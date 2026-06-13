@@ -92,10 +92,23 @@
     var OUTSIDER = def.outsider || { label: 'Outsider', plural: 'Outsiders' };
     var INSIDER = def.insider || { label: 'Insider', plural: 'Insiders' };
     var CONTENT_MODEL = def.contentModel || 'word';
+    // contentModel is a CONFIG field (defaulting to the def's) so one game can offer variants:
+    // e.g. Imposter "Classic" (model 'word', outsider blank) vs "Undercover" (model 'wordPair').
+    var ALLOWED_MODELS = def.allowedContentModels || [CONTENT_MODEL];
     var DEFAULT_INTERACTION = def.interaction || 'clues';
     var DEFAULT_GUESS = def.guessMode || 'free';
+    var CONTENT_MODELS = ['word', 'wordPair', 'locationRoles'];
 
     function outsiderLabel(n) { return n === 1 ? OUTSIDER.label : (OUTSIDER.plural || (OUTSIDER.label + 's')); }
+    // Each content model is fed by exactly one pack type, so selecting a model also selects which
+    // packs are eligible (a 'word' game ignores 'pairs' packs and vice-versa).
+    function modelPackType(model) {
+      return model === 'wordPair' ? 'pairs' : (model === 'locationRoles' ? 'locations' : 'words');
+    }
+    function modelOf(stateOrConfig) {
+      var c = stateOrConfig && stateOrConfig.config ? stateOrConfig.config : stateOrConfig;
+      return (c && c.contentModel) || CONTENT_MODEL;
+    }
 
     // -------------------------------------------------------------------------
     // Config construction. defaultConfig is a FAITHFUL, START-READY config for a
@@ -117,6 +130,7 @@
         botCount: 0,                       // last N seats are computer players (fill-the-table)
 
         // ---- content selection ----
+        contentModel: CONTENT_MODEL,       // which variant: word | wordPair | locationRoles
         packIds: null,                     // null = all packs; or an array of pack ids to allow
 
         // ---- roles ----
@@ -205,6 +219,11 @@
       else if (oc >= Math.ceil(pc / 2)) errors.push('With ' + oc + ' ' + outsiderLabel(oc) + ' and only ' + pc + ' players, the informed players are not a majority — the hunt is unfair. Use at most ' + (Math.ceil(pc / 2) - 1) + '.');
       else if (oc > 1) warnings.push('More than one ' + OUTSIDER.label + ' is a team variant — they win/lose together. Balance shifts toward the ' + outsiderLabel(2) + '.');
 
+      // Content model (variant).
+      var model = modelOf(c);
+      if (CONTENT_MODELS.indexOf(model) === -1) errors.push('Content model must be one of: ' + CONTENT_MODELS.join(', ') + '.');
+      else if (ALLOWED_MODELS.indexOf(model) === -1) errors.push('This game does not support the "' + model + '" variant.');
+
       // Interaction phase.
       if (INTERACTIONS.indexOf(c.interaction) === -1) errors.push('Interaction must be one of: ' + INTERACTIONS.join(', ') + '.');
       if (def.allowedInteractions && def.allowedInteractions.indexOf(c.interaction) === -1) {
@@ -241,7 +260,7 @@
         if (avail.length === 0 || items === 0) errors.push('No content matches your selection. Enable more packs.');
         else if (avail.length < 2) warnings.push('Only one content pack is selected — rounds will repeat quickly.');
         // locationRoles + guessMode:list needs enough locations to make a guess meaningful.
-        if (CONTENT_MODEL === 'locationRoles' && c.guessMode === 'list' && items < 6) {
+        if (modelOf(c) === 'locationRoles' && c.guessMode === 'list' && items < 6) {
           warnings.push('Fewer than 6 locations makes the ' + OUTSIDER.label + "'s final guess almost free.");
         }
       }
@@ -264,6 +283,7 @@
     // `c` (clue hints) are OPTIONAL and only feed the offline bots; humans never see them.
     // -------------------------------------------------------------------------
     function packMatchesConfig(p, c) {
+      if (p.type !== modelPackType(modelOf(c))) return false; // a model only sees its own pack type
       if (c.packIds && c.packIds.length && c.packIds.indexOf(p.id) === -1) return false;
       return true;
     }
@@ -401,14 +421,15 @@
       var it = normItem(items[idx]);
       var isOut = {}; state.outsiderSeats.forEach(function (s) { isOut[s] = true; });
       var c = state.config;
+      var CM = modelOf(state);
 
-      if (CONTENT_MODEL === 'wordPair') {
+      if (CM === 'wordPair') {
         // Insiders get word A; outsiders get the CLOSE word B (they may not realize they differ).
         state.secret = { model: 'wordPair', display: it.display, alt: it.alt, index: idx, packId: pack.id };
         state.players.forEach(function (p) {
           state.seatSecret[p.seat] = { word: isOut[p.seat] ? (it.alt || null) : it.display };
         });
-      } else if (CONTENT_MODEL === 'locationRoles') {
+      } else if (CM === 'locationRoles') {
         // Everyone shares the location; each insider gets a distinct role; the spy gets none.
         state.secret = { model: 'locationRoles', display: it.display, index: idx, packId: pack.id };
         var roles = (it.roles || []).slice();
@@ -471,7 +492,7 @@
         isOutsider: out,                 // the seat is allowed to know its OWN role
         outsiderLabel: OUTSIDER.label,
         insiderLabel: INSIDER.label,
-        contentModel: CONTENT_MODEL,
+        contentModel: modelOf(state),
         category: state.pack ? (state.pack.category || state.pack.name) : null,
         // The shared secret (or null when this seat is the outsider, unless a variant fills it):
         word: priv.word != null ? priv.word : null,

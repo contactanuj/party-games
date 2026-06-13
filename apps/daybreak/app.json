@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Daybreak",
+    "slug": "daybreak",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#1a1206",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1206"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.partydeck.daybreak",
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#1a1206"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.partydeck.daybreak",
+      "supportsTablet": false
+    },
+    "plugins": [
+      [
+        "react-native-webview",
+        {
+          "allowFileAccessFromFileURLs": true,
+          "allowUniversalAccessFromFileURLs": true
+        }
+      ]
+    ]
+  }
+}

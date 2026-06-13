@@ -213,6 +213,7 @@
         tokens: [],
         marks: null,          // games with a Mark system initialize this in a hook
         knowledge: {},        // seat -> [facts] (PRIVATE; never in publicView)
+        faceUp: {},           // seat -> {role} cards a role turned face-up (PUBLIC by design)
         schedule: [],
         cursor: 0,
         votes: {},            // seat -> target seat
@@ -250,6 +251,18 @@
         var ccard = deck[pc + ci];
         state.positions['c' + ci] = { kind: 'center', index: ci, cardId: ccard.id };
       }
+
+      // Reserved cards: a role in the set can require an EXTRA fixed card in its own slot
+      // (e.g. the Alpha Wolf's "center werewolf" — a guaranteed Werewolf, not shuffled).
+      var reservedSet = {};
+      config.roleSet.forEach(function (id) { if (REG[id] && REG[id].reservedCenter) reservedSet[id] = REG[id].reservedCenter; });
+      var ri = 0;
+      Object.keys(reservedSet).forEach(function (id) {
+        var cid = 'rcard_' + ri;
+        state.cards[cid] = { id: cid, role: reservedSet[id], copiedRole: null, reserved: true };
+        state.positions['rc' + ri] = { kind: 'reserved', index: ri, cardId: cid, forRole: id };
+        ri++;
+      });
 
       // Mark the last `botCount` seats as computer players (for fill-the-table / solo play).
       var botCount = Math.max(0, Math.min(pc - 1, config.botCount || 0));
@@ -302,10 +315,13 @@
     }
     // End-of-game role/team of a seat: the card now in the seat (+ copied-role travel + overrides).
     function finalRoleId(state, seat) {
+      // Per-game override (e.g. Daybreak Artifact tokens replace a card's end-game identity).
+      if (def.finalRoleOverride) { var o = def.finalRoleOverride(state, seat, { tokensOn: tokensOn }); if (o) return o; }
       var card = cardAt(state, seatPos(seat));
       if (card.role === 'doppelganger' && card.copiedRole) return card.copiedRole;
       return card.role;
     }
+    function tokensOn(state, pos) { return state.tokens.filter(function (t) { return t.onPosition === pos; }); }
     function finalTeamOf(state, seat) {
       // Per-game override hook (tokens/marks can change team) runs first.
       if (def.finalTeamOverride) {
@@ -353,6 +369,7 @@
         roleName: function (id) { return (REG[id] && REG[id].name) || id; },
         actingRole: function (s) { return actingRole(state, s); },
         actsAsWerewolf: function (s) { return isWerewolfRole(actingRole(state, s)); },
+        roleIsWerewolf: function (id) { return isWerewolfRole(id); },
         neighbors: function (s) { return neighbors(state, s == null ? seat : s); },
         seatByNumber: function (num) {
           for (var i = 0; i < state.players.length; i++) if (state.players[i].number === num) return i;
@@ -408,6 +425,26 @@
         // run right now; group/late copies run at the copied role's natural wake position).
         roleHasWake: function (id) { return !!(REG[id] && REG[id].wake != null); },
         reWakeSelfAs: function (id) { scheduleReWake(state, seat, id); },
+        // Reserved-slot access (e.g. Alpha Wolf's center werewolf card).
+        reservedPos: function (forRoleId) {
+          var keys = Object.keys(state.positions);
+          for (var i = 0; i < keys.length; i++) { var p = state.positions[keys[i]]; if (p.kind === 'reserved' && p.forRole === forRoleId) return keys[i]; }
+          return null;
+        },
+        // Cyclically shift the cards among a set of positions (Village Idiot). Shielded skipped.
+        cycleCards: function (positions, dir) {
+          var open = (positions || []).filter(function (p) { return !isShielded(state, p); });
+          if (open.length < 2) { learned.push({ kind: 'noop', reason: 'Not enough movable cards.' }); return; }
+          var ids = open.map(function (p) { return state.positions[p].cardId; });
+          if (dir === 'right') ids.unshift(ids.pop()); else ids.push(ids.shift());
+          open.forEach(function (p, i) { state.positions[p].cardId = ids[i]; });
+          pushLog(state, nameOf(state, seat) + ' shifted everyone\'s cards.', true);
+        },
+        // Turn a player's card face-up for the whole table to see (Revealer). PUBLIC by design.
+        revealFaceUp: function (targetSeat) {
+          if (isShielded(state, seatPos(targetSeat))) { learned.push({ kind: 'noop', reason: 'That card is protected.' }); return; }
+          state.faceUp[targetSeat] = { role: printedRoleAt(state, seatPos(targetSeat)) };
+        },
         // mark helpers attach only when a game initialized state.marks
         placeMark: function (type, targetSeat) { return placeMark(state, type, targetSeat, learned); },
         moveMark: function (fromSeat, toSeat) { return moveMark(state, fromSeat, toSeat, learned); },
@@ -938,6 +975,11 @@
         // role-set CARDS in play are public knowledge in this family, but NOT who holds them:
         rolesInPlay: countRolesInPlay(state),
         nightProgress: { cursor: state.cursor, total: state.schedule.length },
+        // Cards a role turned face-up are intentionally public (the table is meant to see them).
+        revealedCards: Object.keys(state.faceUp).map(function (s) {
+          var rid = state.faceUp[s].role;
+          return { seat: +s, name: state.players[s].name, roleName: (REG[rid] || {}).name };
+        }),
         votesCast: Object.keys(state.votes).length,
         // results only exist after the game ends (state.result), surfaced separately:
         ended: state.phase === 'end'
@@ -961,7 +1003,9 @@
         name: state.players[seat].name,
         dealtRole: state.players[seat].dealtRole,
         dealtRoleName: (REG[state.players[seat].dealtRole] || {}).name,
-        knowledge: (state.knowledge[seat] || []).slice()
+        knowledge: (state.knowledge[seat] || []).slice(),
+        // tokens on your card you are entitled to peek (e.g. a Daybreak Artifact)
+        tokens: state.tokens.filter(function (t) { return t.onPosition === 'p' + seat; }).map(function (t) { return t.type; })
       };
     }
 

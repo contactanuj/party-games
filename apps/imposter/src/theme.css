@@ -1,0 +1,13 @@
+/* theme.css (Imposter) — brand palette. base.css consumes these tokens. NO role-coded colours:
+   nothing here is keyed to "imposter vs crew" — the secrecy of the game depends on it. */
+:root {
+  --bg: #14121f;        /* deep indigo */
+  --panel: #221d36;     /* raised panel */
+  --text: #f3f0ff;
+  --muted: #a39fc0;
+  --accent: #7c5cff;    /* vivid violet (buttons, selection) */
+  --danger: #e0556a;
+  --good: #3fbf87;
+}
+body { background: radial-gradient(120% 90% at 50% 0%, #1c1830 0%, var(--bg) 60%); }
+h1 { background: linear-gradient(90deg, #b6a4ff, #7c5cff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }

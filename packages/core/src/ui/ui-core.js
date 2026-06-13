@@ -331,7 +331,7 @@
       }).join('') + '</div>';
     } else if (spec.type === 'pickPlayer') {
       html += '<div class="grid">' + G.players.map(function (p) {
-        if (p.seat === ui.curSelf) return '';
+        if (p.seat === ui.curSelf && !spec.allowSelf) return '';
         if (spec.exclude && spec.exclude.indexOf(p.seat) !== -1) return '';
         var sel = ui.inputs[spec.id] === p.seat ? ' sel' : '';
         return '<div class="choice' + sel + '" data-pick="' + spec.id + '" data-seat="' + p.seat + '">' + esc(p.name) + '</div>';
@@ -388,9 +388,14 @@
       if (ui.timerLeft == null) ui.timerLeft = G.config.dayTimerSeconds;
       timer = '<div class="timer">' + fmt(ui.timerLeft) + '</div>';
     }
+    var pv = E.publicView(G);
+    var revealed = (pv.revealedCards && pv.revealedCards.length)
+      ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + pv.revealedCards.map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); }).join('<br>') + '</div>'
+      : '';
     return screen(true,
       '<h1>Daybreak</h1>' +
       '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +
+      revealed +
       timer +
       '<button class="btn" data-act="to-vote">Everyone ready — vote</button>' +
       '<button class="btn ghost" data-act="recheck">Privately re-check my role</button>'

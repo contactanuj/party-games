@@ -1,0 +1,9 @@
+{
+  "name": "Daybreak",
+  "slug": "daybreak",
+  "package": "com.partydeck.daybreak",
+  "bgColor": "#1a1206",
+  "accent": "#e8902a",
+  "version": "1.0.0",
+  "icon": { "emblem": "sun", "bg": ["#f0a23a", "#5a1f08"], "fg": "#fff3d6" }
+}
