@@ -32,18 +32,18 @@
       "bundleIdentifier": "com.partydeck.imposter",
       "supportsTablet": false
     },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "allowFileAccessFromFileURLs": true,
-          "allowUniversalAccessFromFileURLs": true
-        }
-      ]
-    ],
     "androidNavigationBar": {
       "backgroundColor": "#14121f",
       "barStyle": "light-content"
+    },
+    "owner": "snyperdrydan",
+    "extra": {
+      "eas": {
+        "projectId": "72fb51d4-8316-495d-a157-8eb47ae34da7"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/72fb51d4-8316-495d-a157-8eb47ae34da7"
     }
   }
 }

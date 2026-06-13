@@ -11,9 +11,11 @@ Thumbs.db
 .vscode/
 *.swp
 
-# Expo / EAS local artifacts
+# Expo / EAS local artifacts + credentials (never commit signing material)
 *.keystore
 *.jks
+credentials.json
+**/credentials/
 google-services.json
 GoogleService-Info.plist
 
