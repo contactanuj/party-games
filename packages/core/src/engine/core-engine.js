@@ -370,6 +370,7 @@
         actingRole: function (s) { return actingRole(state, s); },
         actsAsWerewolf: function (s) { return isWerewolfRole(actingRole(state, s)); },
         roleIsWerewolf: function (id) { return isWerewolfRole(id); },
+        roleHasFlag: function (id, flag) { return !!(REG[id] && REG[id][flag]); },
         neighbors: function (s) { return neighbors(state, s == null ? seat : s); },
         seatByNumber: function (num) {
           for (var i = 0; i < state.players.length; i++) if (state.players[i].number === num) return i;
@@ -449,6 +450,8 @@
         placeMark: function (type, targetSeat) { return placeMark(state, type, targetSeat, learned); },
         moveMark: function (fromSeat, toSeat) { return moveMark(state, fromSeat, toSeat, learned); },
         myMarkType: function () { return state.marks ? markTypeOfSeat(state, seat) : null; },
+        markOfSeat: function (s) { return state.marks ? markTypeOfSeat(state, s) : null; },
+        anyMark: function (type) { if (!state.marks) return false; for (var i = 0; i < state.players.length; i++) if (markTypeOfSeat(state, i) === type) return true; return false; },
         _learned: learned
       };
       return ctx;
@@ -545,6 +548,7 @@
         roleName: r.name,
         prompt: r.prompt || (r.name + ', it is your turn.'),
         optional: !!r.optional,
+        feared: !!(state.marks && markTypeOfSeat(state, seat) === 'fear'), // Mark of Fear: cannot act
         inputs: inputs
       };
     }
@@ -572,6 +576,14 @@
       var step = currentStep(state);
       if (!step) throw new Error('No active night step.');
       var seat = step.seat;
+      // Mark of Fear: this player cannot use their power tonight (action is skipped).
+      if (state.marks && markTypeOfSeat(state, seat) === 'fear') {
+        state.knowledge[seat] = (state.knowledge[seat] || []).concat([{ kind: 'feared' }]);
+        step.done = true; state.cursor++;
+        if (state._pendingInserts && state._pendingInserts.length) applyPendingInserts(state);
+        maybeEndNight(state);
+        return [{ kind: 'feared' }];
+      }
       var r = REG[actingRole(state, seat)];
       var ctx = makeCtx(state, seat);
       var spec = (r.inputs ? r.inputs(ctx) : []) || [];
@@ -786,6 +798,13 @@
     // Multiple teams can win. Returns result on state.result.
     // =========================================================================
     function resolveOutcome(state) {
+      // A game with very different win conditions (e.g. Vampire/Alien teams) can fully replace
+      // the base Werewolf-family resolution.
+      if (def.resolveOutcome) {
+        state.result = def.resolveOutcome(state, outcomeHelpers(state));
+        pushLog(state, 'Winner(s): ' + ((state.result.winners || []).join(', ') || 'no one'));
+        return state.result;
+      }
       var pc = state.players.length, s;
       var deaths = state.deaths;
       var diedSet = {}; deaths.forEach(function (d) { diedSet[d] = true; });
@@ -846,6 +865,22 @@
       };
       pushLog(state, 'Winner(s): ' + (state.result.winners.join(', ') || 'no one'));
       return state.result;
+    }
+
+    // Helpers handed to a game's custom resolveOutcome (Vampire/Alien).
+    function outcomeHelpers(state) {
+      return {
+        deaths: state.deaths.slice(),
+        players: state.players,
+        REG: REG,
+        finalRoleId: function (s) { return finalRoleId(state, s); },
+        finalTeamOf: function (s) { return finalTeamOf(state, s); },
+        markOf: function (s) { return state.marks ? markTypeOfSeat(state, s) : null; },
+        roleFlag: function (s, flag) { var r = REG[finalRoleId(state, s)]; return !!(r && r[flag]); },
+        neighbors: function (s) { return neighbors(state, s); },
+        votes: state.votes,
+        died: function (s) { return state.deaths.indexOf(s) !== -1; }
+      };
     }
 
     function makeWinContext(state, deaths, diedSet, wwSeats, werewolfDied, someoneDied) {
@@ -1005,7 +1040,9 @@
         dealtRoleName: (REG[state.players[seat].dealtRole] || {}).name,
         knowledge: (state.knowledge[seat] || []).slice(),
         // tokens on your card you are entitled to peek (e.g. a Daybreak Artifact)
-        tokens: state.tokens.filter(function (t) { return t.onPosition === 'p' + seat; }).map(function (t) { return t.type; })
+        tokens: state.tokens.filter(function (t) { return t.onPosition === 'p' + seat; }).map(function (t) { return t.type; }),
+        // your current Mark (Vampire), which you are entitled to know
+        mark: state.marks ? markTypeOfSeat(state, seat) : null
       };
     }
 

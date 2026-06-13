@@ -1,0 +1,12 @@
+/* theme.css (Vampire) — CSS custom-property overrides only. Crimson-night palette. */
+:root {
+  --bg: #100407;
+  --panel: #20090e;
+  --text: #f6e6e9;
+  --muted: #b58a92;
+  --accent: #c2304a;   /* blood crimson */
+  --danger: #e0564f;
+  --good: #6fbf73;
+}
+body { background: radial-gradient(120% 80% at 50% -10%, #3a0a16 0%, #100407 62%); }
+h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }

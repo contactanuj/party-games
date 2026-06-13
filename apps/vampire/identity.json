@@ -1,0 +1,9 @@
+{
+  "name": "Vampire",
+  "slug": "vampire",
+  "package": "com.partydeck.vampire",
+  "bgColor": "#120407",
+  "accent": "#c2304a",
+  "version": "1.0.0",
+  "icon": { "emblem": "drop", "bg": ["#5a0f1c", "#0c0305"], "fg": "#d6334d" }
+}

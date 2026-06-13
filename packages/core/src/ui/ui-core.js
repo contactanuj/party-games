@@ -307,6 +307,14 @@
 
   function renderAct(step) {
     ui.inputs = ui.inputs || {};
+    if (step.feared) {
+      return screen(true,
+        '<p class="muted">Your secret role</p>' +
+        '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
+        '<div class="panel">You carry the <b>Mark of Fear</b> — you cannot use your power tonight.</div>' +
+        '<button class="btn" data-act="act-confirm">Continue</button>'
+      );
+    }
     var inputsHtml = step.inputs.map(function (spec) { return renderInput(spec); }).join('');
     var canConfirm = clientInputsValid(step.inputs, ui.inputs);
     return screen(false,
@@ -373,6 +381,11 @@
         if (!f.allies.length) return 'You found no partners — you appear to be alone.';
         return 'With you: ' + f.allies.map(function (a) { return a.name; }).join(', ') + '.';
       case 'copied': return 'You are now the ' + f.roleName + '.';
+      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' — you have joined them.';
+      case 'shielded': return 'You placed a protective shield on a card.';
+      case 'placedArtifact': return 'You placed a face-down Artifact (you did not see which).';
+      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner — turned back face-down.';
+      case 'feared': return 'You carry the Mark of Fear — you could not act tonight.';
       case 'mark': return 'You placed a mark.';
       case 'markMove': return 'You moved a mark.';
       case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected — nothing happened.';
@@ -657,9 +670,20 @@
     }
     var pr = E.privateReveal(G, p.seat);
     var learned = pr.knowledge.map(factText).filter(Boolean);
+    var extras = '';
+    if (pr.mark && pr.mark !== 'clarity') {
+      var md = (DEF.markDesc && DEF.markDesc[pr.mark]) || pr.mark;
+      extras += '<div class="panel">Your Mark: <b>' + esc(md) + '</b></div>';
+    }
+    (pr.tokens || []).forEach(function (t) {
+      if (t.indexOf('artifact:') === 0) {
+        var key = t.split(':')[1], desc = (DEF.artifactDesc && DEF.artifactDesc[key]) || 'an Artifact';
+        extras += '<div class="panel">Your Artifact: ' + esc(desc) + '</div>';
+      }
+    });
     app.innerHTML = screen(true,
       '<p class="muted">' + esc(p.name) + ', you started as</p>' +
-      '<div class="big-role">' + esc(pr.dealtRoleName) + '</div>' +
+      '<div class="big-role">' + esc(pr.dealtRoleName) + '</div>' + extras +
       (learned.length ? '<div class="divider"></div><p class="muted">What you saw in the night:</p>' + learned.map(function (l) { return '<div class="panel">' + esc(l) + '</div>'; }).join('') : '') +
       '<div class="divider"></div><button class="btn" data-act="rc-next">Hide &amp; pass on</button>'
     );
