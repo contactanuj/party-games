@@ -32,18 +32,15 @@
       "bundleIdentifier": "com.partydeck.outoftheloop",
       "supportsTablet": false
     },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "allowFileAccessFromFileURLs": true,
-          "allowUniversalAccessFromFileURLs": true
-        }
-      ]
-    ],
     "androidNavigationBar": {
       "backgroundColor": "#0c1a1c",
       "barStyle": "light-content"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "50e18421-8432-4063-8e0b-622795b8d882"
+      }
+    },
+    "owner": "snyperdrydan"
   }
 }

@@ -2,7 +2,7 @@
   "name": "spyhunt",
   "version": "1.0.0",
   "private": true,
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "gen:config": "node ../../packages/core/build/make-app-json.js",
     "gen:icon": "node scripts/make-icon.js",

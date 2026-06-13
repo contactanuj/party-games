@@ -5,5 +5,7 @@
   "bgColor": "#0c1a1c",
   "accent": "#2bb6a8",
   "version": "1.0.0",
-  "customIcon": true
+  "customIcon": true,
+  "owner": "snyperdrydan",
+  "easProjectId": "50e18421-8432-4063-8e0b-622795b8d882"
 }
