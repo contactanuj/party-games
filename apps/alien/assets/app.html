@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#04121a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Alien</title>
+  <style>
+/* base.css — shared theme. Colors come from CSS custom properties each game overrides in
+ * theme.css (--bg, --panel, --text, --muted, --accent, --danger, --good ...). No game-specific
+ * colors here, and CRUCIALLY no role/team-coded colors that could leak identity on a shared
+ * screen — role coloring is never used in public surfaces. */
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+#app { min-height: 100%; display: flex; flex-direction: column; }
+
+/* Top padding includes env(safe-area-inset-top) so content never sits under the device status
+   bar / notch (the WebView draws edge-to-edge with viewport-fit=cover). Left/right insets too
+   for landscape/curved screens. */
+.screen { flex: 1; display: flex; flex-direction: column;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-right: calc(18px + env(safe-area-inset-right));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  padding-left: calc(18px + env(safe-area-inset-left));
+  max-width: 560px; width: 100%; margin: 0 auto; }
+.screen.center { justify-content: center; align-items: center; text-align: center; }
+
+h1 { font-size: 30px; font-weight: 800; letter-spacing: .5px; margin: 0 0 4px; }
+h2 { font-size: 20px; font-weight: 700; margin: 18px 0 8px; }
+h3 { font-size: 16px; font-weight: 700; margin: 12px 0 6px; }
+p { line-height: 1.5; margin: 8px 0; }
+.tagline { color: var(--muted); font-size: 15px; margin: 0 0 24px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.center-text { text-align: center; }
+
+/* Buttons */
+.btn {
+  display: block; width: 100%; padding: 16px 18px; margin: 8px 0; border: none; border-radius: 14px;
+  font-size: 17px; font-weight: 700; color: #fff; background: var(--accent);
+  cursor: pointer; transition: transform .05s ease, filter .15s ease; text-align: center;
+}
+.btn:active { transform: scale(.985); filter: brightness(1.08); }
+.btn.secondary { background: var(--panel); color: var(--text); border: 1px solid rgba(255,255,255,.12); }
+.btn.ghost { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
+.btn.danger { background: var(--danger); }
+.btn.good { background: var(--good); }
+.btn.small { padding: 10px 12px; font-size: 14px; border-radius: 10px; margin: 4px 0; }
+.btn:disabled { opacity: .4; pointer-events: none; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.spacer { flex: 1; }
+.stack > * { margin-bottom: 10px; }
+
+/* Panels / cards */
+.panel { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px; margin: 10px 0; }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.08); font-size: 13px; margin: 3px; }
+.divider { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
+
+/* Inputs */
+input[type=text], input[type=number], select {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04); color: var(--text); font-size: 16px;
+}
+label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 14px; font-weight: 600; }
+
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stepper .val { font-size: 22px; font-weight: 800; min-width: 48px; text-align: center; }
+.stepbtn { width: 48px; height: 48px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: var(--panel); color: var(--text); font-size: 24px; font-weight: 700; }
+
+.toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.toggle .sw { width: 52px; height: 30px; border-radius: 999px; background: rgba(255,255,255,.14); position: relative; transition: background .15s; flex: none; }
+.toggle .sw.on { background: var(--good); }
+.toggle .sw .knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .15s; }
+.toggle .sw.on .knob { left: 25px; }
+
+/* Validation */
+.err { background: rgba(255,80,80,.12); border: 1px solid var(--danger); color: #ffd9d9; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
+.warn { background: rgba(240,190,70,.10); border: 1px solid rgba(240,190,70,.5); color: #ffe9b8; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
+
+/* Handoff gate — the secrecy screen. Deliberately neutral; reveals nothing. */
+.gate { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; }
+.gate .who { font-size: 28px; font-weight: 800; }
+.gate .hint { color: var(--muted); max-width: 320px; }
+
+/* Player-pick grid */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.choice { padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: var(--panel); text-align: center; font-weight: 700; cursor: pointer; }
+.choice.sel { border-color: var(--accent); background: rgba(255,255,255,.06); box-shadow: 0 0 0 2px var(--accent) inset; }
+.choice.dead { opacity: .45; }
+
+/* Reveal / results */
+.big-role { font-size: 34px; font-weight: 900; margin: 6px 0; }
+.result-win { font-size: 26px; font-weight: 900; }
+.reveal-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.reveal-row .nm { font-weight: 700; }
+.dead-tag { color: var(--danger); font-weight: 700; font-size: 13px; }
+
+/* Timer */
+.timer { font-size: 44px; font-weight: 900; text-align: center; margin: 10px 0; }
+
+/* Narrator script */
+.script-line { padding: 14px 16px; border-radius: 12px; background: var(--panel); margin: 8px 0; font-size: 17px; line-height: 1.4; }
+.script-line.all { background: rgba(255,255,255,.04); font-style: italic; }
+
+.footer-note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 14px; }
+
+/* theme.css (Alien) — CSS custom-property overrides only. Deep-space teal palette. */
+:root {
+  --bg: #04121a;
+  --panel: #0c2230;
+  --text: #e8f6f1;
+  --muted: #8fb6ad;
+  --accent: #39c08a;   /* bio-green */
+  --danger: #e0564f;
+  --good: #46c7a0;
+}
+body { background: radial-gradient(120% 80% at 50% -10%, #0e3a52 0%, #04121a 62%); }
+h1 { text-shadow: 0 2px 18px rgba(57,192,138,.28); }
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+/*
+ * core-engine.js — shared rules engine for the social-deduction "night / vote / reveal"
+ * family (Werewolf, Daybreak, Vampire, Alien). PURE: no DOM, no network.
+ *
+ * Design tenets (the correctness + secrecy backbone):
+ *  - Deterministic given a seed: a single mulberry32 PRNG lives on state.rngState and is
+ *    the ONLY source of randomness. Same (config, seed, inputs) => byte-identical state.
+ *  - JSON-serializable state: only arrays/objects/primitives are stored on `state`, never
+ *    functions/Map/Set, so it survives localStorage and a future network transport.
+ *  - POSITIONS hold a cardId; CARDS hold a role. A swap is just exchanging cardIds between
+ *    two positions, so Robber/Troublemaker/Drunk/Village-Idiot/Alpha-Wolf are one primitive.
+ *  - players[seat].dealtRole is FROZEN at deal and is the ONLY thing the wake scheduler reads
+ *    ("you always act as the role you were dealt, even after your card was swapped"). A
+ *    player's TEAM at the end is read from the card currently in their seat (+ overrides).
+ *  - INFORMATION BOUNDARY: the engine separates public state from per-seat private knowledge.
+ *    `publicView(state)` exposes ONLY public data (names, alive/phase/progress) and never a
+ *    role/team/card. Private knowledge is per-seat and surfaced only via privateReveal(seat).
+ *    The UI must render shared screens from publicView() exclusively.
+ *
+ * The engine hardcodes NO role names — each game passes a role registry (data objects). This
+ * file implements the framework + the base Werewolf-family win/vote rules; later games add
+ * roles (which can carry their own win contributors / vote modifiers) and a few new mechanics
+ * (tokens, marks) via the seams provided here.
+ */
+(function (root, factory) {
+  var GC = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = GC;
+  if (root) root.GameCore = GC;
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // Seeded PRNG (mulberry32) — deterministic + serialized via state.rngState.
+  // ---------------------------------------------------------------------------
+  function nextRand(state) {
+    var t = (state.rngState = (state.rngState + 0x6D2B79F5) >>> 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function randInt(state, n) { return Math.floor(nextRand(state) * n); }
+  function shuffleInPlace(state, arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = randInt(state, i + 1);
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+  function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  // ---------------------------------------------------------------------------
+  // Engine factory. `def` describes ONE game; the returned api operates on plain state.
+  //   def = { game, roles:[roleDef], presets:{n:[ids]}|fn, defaultOptions:{},
+  //           centerCount=3, teams:[teamMeta], winContributors:[], voteModifiers:[] }
+  // ---------------------------------------------------------------------------
+  function createEngine(def) {
+    if (!def || !def.roles) throw new Error('createEngine: def.roles is required.');
+    var CENTER = def.centerCount == null ? 3 : def.centerCount;
+
+    // Registry: id -> roleDef (frozen lookup, never stored on state).
+    var REG = {};
+    def.roles.forEach(function (r) {
+      if (REG[r.id]) throw new Error('Duplicate role id: ' + r.id);
+      REG[r.id] = r;
+    });
+    function role(id) {
+      var r = REG[id];
+      if (!r) throw new Error('Unknown role id: ' + id);
+      return r;
+    }
+    function hasRole(id) { return !!REG[id]; }
+
+    var DEFAULT_OPTIONS = def.defaultOptions || {};
+
+    // ---- team / classification helpers (read the registry, not the engine) ----
+    function teamOfRole(id) {
+      var r = REG[id];
+      if (!r) return 'unknown';
+      return typeof r.team === 'function' ? r.team : r.team || 'village';
+    }
+    function isWerewolfRole(id) { return !!(REG[id] && REG[id].werewolf); }
+    function isSoloRole(id) { return !!(REG[id] && REG[id].solo); }
+
+    // =========================================================================
+    // Config
+    // =========================================================================
+    function defaultNames(pc) {
+      var out = [];
+      for (var i = 0; i < pc; i++) out.push('Player ' + (i + 1));
+      return out;
+    }
+    function presetRoleSet(pc) {
+      var p = def.presets;
+      var set = typeof p === 'function' ? p(pc) : (p && p[pc]);
+      return set ? set.slice() : null;
+    }
+    // Build a faithful default config for a player count.
+    function defaultConfig(playerCount, names) {
+      var pc = playerCount || 3;
+      var roleSet = presetRoleSet(pc);
+      if (!roleSet) {
+        // Synthesize a minimal legal set: enough villagers + the smallest werewolf presence.
+        roleSet = [];
+        var firstWolf = def.roles.filter(function (r) { return r.werewolf; })[0];
+        var villager = def.roles.filter(function (r) { return r.id === 'villager'; })[0] || def.roles[0];
+        if (firstWolf) roleSet.push(firstWolf.id);
+        while (roleSet.length < pc + CENTER) roleSet.push(villager.id);
+      }
+      return {
+        game: def.game,
+        playerCount: pc,
+        playerNames: (names && names.slice(0, pc)) || defaultNames(pc),
+        roleSet: roleSet,
+        centerCount: CENTER,
+        options: deepClone(DEFAULT_OPTIONS),
+        mode: 'digital',           // 'digital' | 'narrator'
+        dayTimerSeconds: 0,        // 0 = no timer
+        hideRoleHolders: true      // insert decoy handoffs so observers can't tell who has a role
+      };
+    }
+
+    // ---- validation: errors block start; warnings are off-spec but playable ----
+    function validateConfig(config) {
+      var errors = [], warnings = [];
+      var c = config;
+      if (!c || typeof c !== 'object') return { ok: false, errors: ['No configuration provided.'], warnings: [] };
+
+      var pc = c.playerCount;
+      if (!(pc >= 3)) errors.push('Need at least 3 players.');
+      if (pc > 10) warnings.push('More than 10 players is outside the tested range — balance is not guaranteed.');
+
+      var roleSet = c.roleSet || [];
+      var center = c.centerCount == null ? CENTER : c.centerCount;
+      // The defining invariant of this game family: exactly `players + center` cards.
+      if (roleSet.length !== pc + center) {
+        errors.push('You have ' + roleSet.length + ' role card(s) but need exactly ' +
+          (pc + center) + ' (' + pc + ' players + ' + center + ' center). Add or remove ' +
+          Math.abs(roleSet.length - (pc + center)) + '.');
+      }
+      // Every role must exist in THIS game (no cross-game roles).
+      var counts = {};
+      roleSet.forEach(function (id) {
+        counts[id] = (counts[id] || 0) + 1;
+        if (!hasRole(id)) errors.push('Unknown role "' + id + '" for this game.');
+      });
+      // Per-role copy limits.
+      Object.keys(counts).forEach(function (id) {
+        var r = REG[id];
+        if (r && r.maxCopies != null && counts[id] > r.maxCopies) {
+          errors.push((r.name || id) + ': at most ' + r.maxCopies + ' allowed (you have ' + counts[id] + ').');
+        }
+        if (r && r.requiresEven && counts[id] % 2 !== 0) {
+          errors.push((r.name || id) + ' must be added in pairs (you have ' + counts[id] + ').');
+        }
+      });
+
+      // Names: one per player, non-empty, unique (duplicates are a soft warning).
+      var names = c.playerNames || [];
+      if (names.length !== pc) errors.push('You have ' + names.length + ' name(s) but ' + pc + ' player(s).');
+      var seen = {};
+      for (var i = 0; i < names.length; i++) {
+        var nm = (names[i] || '').trim();
+        if (!nm) { errors.push('Every player needs a name (player ' + (i + 1) + ' is blank).'); continue; }
+        var key = nm.toLowerCase();
+        if (seen[key]) warnings.push('Two players are both named "' + nm + '" — they will be hard to tell apart.');
+        seen[key] = true;
+      }
+
+      // At least one waking-or-meaningful tension: warn if there is no way for the village to win
+      // or no werewolf-team presence possible (purely informational; still playable).
+      var anyWolfPossible = roleSet.some(isWerewolfRole);
+      if (!anyWolfPossible) warnings.push('No Werewolf is in the card set — the village can only win by no one dying.');
+
+      // Dependency warnings declared by roles (e.g. Insomniac wants a swapper; Mason wants 2).
+      def.roles.forEach(function (r) {
+        if (r.validate && counts[r.id]) {
+          var msgs = r.validate({ counts: counts, config: c, has: function (id) { return !!counts[id]; } }) || [];
+          msgs.forEach(function (m) {
+            if (m && m.level === 'error') errors.push(m.text);
+            else if (m && m.text) warnings.push(m.text);
+          });
+        }
+      });
+
+      // Game-supplied extra rules.
+      (def.validateRules || []).forEach(function (rule) {
+        var m = rule(c, { counts: counts, REG: REG });
+        if (!m) return;
+        if (m.level === 'error') errors.push(m.text); else warnings.push(m.text);
+      });
+
+      return { ok: errors.length === 0, errors: errors, warnings: warnings };
+    }
+
+    // =========================================================================
+    // New game: deal cards, freeze dealt roles, build the wake schedule.
+    // =========================================================================
+    function newGame(config, seed) {
+      var v = validateConfig(config);
+      if (!v.ok) throw new Error('Invalid config: ' + v.errors.join(' '));
+      var pc = config.playerCount;
+      var center = config.centerCount == null ? CENTER : config.centerCount;
+
+      var state = {
+        schemaVersion: 1,
+        game: def.game,
+        mode: config.mode || 'digital',
+        rngState: (seed >>> 0) || 1,
+        config: deepClone(config),
+        positions: {},
+        cards: {},
+        players: [],
+        tokens: [],
+        marks: null,          // games with a Mark system initialize this in a hook
+        knowledge: {},        // seat -> [facts] (PRIVATE; never in publicView)
+        faceUp: {},           // seat -> {role} cards a role turned face-up (PUBLIC by design)
+        faceUpCenter: {},     // center index -> {role} center cards exposed (PUBLIC by design)
+        variants: {},         // seat -> chosen action variant (e.g. Alien app-driven roles)
+        schedule: [],
+        cursor: 0,
+        votes: {},            // seat -> target seat
+        voteTally: null,
+        deaths: [],
+        phase: 'setup',
+        log: [],
+        result: null
+      };
+
+      // Build + shuffle the deck of role cards.
+      var deck = config.roleSet.map(function (id, i) {
+        return { id: 'card_' + i, role: id, copiedRole: null };
+      });
+      shuffleInPlace(state, deck);
+      deck.forEach(function (card) { state.cards[card.id] = card; });
+
+      // Assign first pc cards to seats, remaining `center` to center positions.
+      for (var s = 0; s < pc; s++) {
+        var card = deck[s];
+        state.positions['p' + s] = { kind: 'seat', seat: s, cardId: card.id };
+        state.players.push({
+          seat: s,
+          name: config.playerNames[s],
+          number: s + 1,                 // stable "player number" (Alien addressing)
+          dealtRole: card.role,          // FROZEN — drives wake order
+          dealtCardId: card.id,
+          copiedRole: null,              // Doppelgänger/Copycat acquired acting-identity
+          alive: true,
+          bot: false                     // set below from config.botCount (last N seats are bots)
+        });
+        state.knowledge[s] = [];
+      }
+      for (var ci = 0; ci < center; ci++) {
+        var ccard = deck[pc + ci];
+        state.positions['c' + ci] = { kind: 'center', index: ci, cardId: ccard.id };
+      }
+
+      // Reserved cards: a role in the set can require an EXTRA fixed card in its own slot
+      // (e.g. the Alpha Wolf's "center werewolf" — a guaranteed Werewolf, not shuffled).
+      var reservedSet = {};
+      config.roleSet.forEach(function (id) { if (REG[id] && REG[id].reservedCenter) reservedSet[id] = REG[id].reservedCenter; });
+      var ri = 0;
+      Object.keys(reservedSet).forEach(function (id) {
+        var cid = 'rcard_' + ri;
+        state.cards[cid] = { id: cid, role: reservedSet[id], copiedRole: null, reserved: true };
+        state.positions['rc' + ri] = { kind: 'reserved', index: ri, cardId: cid, forRole: id };
+        ri++;
+      });
+
+      // Mark the last `botCount` seats as computer players (for fill-the-table / solo play).
+      var botCount = Math.max(0, Math.min(pc - 1, config.botCount || 0));
+      for (var bi = pc - botCount; bi < pc; bi++) state.players[bi].bot = true;
+
+      // Per-game setup hook (e.g. Vampire deals a Clarity mark to every seat).
+      if (def.onNewGame) def.onNewGame(state, helpers(state));
+
+      buildSchedule(state);
+      state.phase = (def.firstPhase && def.firstPhase(state)) || 'reveal';
+      pushLog(state, 'Cards dealt. ' + pc + ' players, ' + center + ' in the center.');
+      return state;
+    }
+
+    // The wake schedule: every player whose DEALT role has a wake number, in wake order.
+    // Doppelgänger/Copycat may insert synthetic re-wake steps when they copy a late role.
+    function buildSchedule(state) {
+      var steps = [];
+      state.players.forEach(function (p) {
+        var r = REG[p.dealtRole];
+        if (r && r.wake != null) {
+          steps.push({ seat: p.seat, roleId: p.dealtRole, wake: r.wake, origin: 'dealt', done: false });
+        }
+      });
+      steps.sort(function (a, b) {
+        if (a.wake !== b.wake) return a.wake - b.wake;
+        return a.seat - b.seat; // stable, deterministic tiebreak
+      });
+      steps.forEach(function (s, i) { s.idx = i; });
+      state.schedule = steps;
+      state.cursor = 0;
+    }
+
+    // =========================================================================
+    // Helpers exposed to roles via ctx, and used internally.
+    // =========================================================================
+    function getPlayer(state, seat) { return state.players[seat]; }
+    function nameOf(state, seat) { var p = state.players[seat]; return p ? p.name : '?'; }
+    function pushLog(state, text, secret) { state.log.push({ text: text, secret: !!secret }); }
+    function seatPos(seat) { return 'p' + seat; }
+    function cardAt(state, pos) { return state.cards[state.positions[pos].cardId]; }
+    function printedRoleAt(state, pos) { return cardAt(state, pos).role; }
+    function isShielded(state, pos) {
+      return state.tokens.some(function (t) { return t.type === 'shield' && t.onPosition === pos; });
+    }
+    // Acting identity of a seat during the night (frozen dealt role, unless it copied one).
+    function actingRole(state, seat) {
+      var p = state.players[seat];
+      return p.copiedRole || p.dealtRole;
+    }
+    // End-of-game role/team of a seat: the card now in the seat (+ copied-role travel + overrides).
+    function finalRoleId(state, seat) {
+      // Per-game override (e.g. Daybreak Artifact tokens replace a card's end-game identity).
+      if (def.finalRoleOverride) { var o = def.finalRoleOverride(state, seat, { tokensOn: tokensOn }); if (o) return o; }
+      var card = cardAt(state, seatPos(seat));
+      if (card.role === 'doppelganger' && card.copiedRole) return card.copiedRole;
+      return card.role;
+    }
+    function tokensOn(state, pos) { return state.tokens.filter(function (t) { return t.onPosition === pos; }); }
+    function finalTeamOf(state, seat) {
+      // Per-game override hook (tokens/marks can change team) runs first.
+      if (def.finalTeamOverride) {
+        var t = def.finalTeamOverride(state, seat, { finalRoleId: finalRoleId, teamOfRole: teamOfRole, REG: REG });
+        if (t) return t;
+      }
+      var rid = finalRoleId(state, seat);
+      var tm = teamOfRole(rid);
+      if (typeof tm === 'function') return tm(state, seat);
+      return tm;
+    }
+    function isFinalWerewolf(state, seat) {
+      if (def.isFinalWerewolfOverride) {
+        var o = def.isFinalWerewolfOverride(state, seat);
+        if (o != null) return o;
+      }
+      return isWerewolfRole(finalRoleId(state, seat));
+    }
+    function neighbors(state, seat) {
+      var n = state.players.length;
+      return [(seat - 1 + n) % n, (seat + 1) % n];
+    }
+
+    // The ctx object handed to a role's inputs()/act(). Closes over state + acting seat.
+    function makeCtx(state, seat) {
+      var p = state.players[seat];
+      var learned = [];
+      var ctx = {
+        state: state,
+        self: seat,
+        selfName: p.name,
+        role: REG[actingRole(state, seat)],
+        dealtRole: p.dealtRole,
+        options: state.config.options || {},
+        players: state.players,
+        playerCount: state.players.length,
+        centerCount: Object.keys(state.positions).filter(function (k) { return k[0] === 'c'; }).length,
+        rng: function () { return nextRand(state); },
+        rngInt: function (n) { return randInt(state, n); },
+        rngPick: function (arr) { return arr[randInt(state, arr.length)]; },
+        seatPos: seatPos,
+        centerPos: function (i) { return 'c' + i; },
+        // ---- read ----
+        printedRoleAt: function (pos) { return printedRoleAt(state, pos); },
+        roleName: function (id) { return (REG[id] && REG[id].name) || id; },
+        actingRole: function (s) { return actingRole(state, s); },
+        actsAsWerewolf: function (s) { return isWerewolfRole(actingRole(state, s)); },
+        roleIsWerewolf: function (id) { return isWerewolfRole(id); },
+        roleHasFlag: function (id, flag) { return !!(REG[id] && REG[id][flag]); },
+        neighbors: function (s) { return neighbors(state, s == null ? seat : s); },
+        seatByNumber: function (num) {
+          for (var i = 0; i < state.players.length; i++) if (state.players[i].number === num) return i;
+          return null;
+        },
+        // ---- look (records private knowledge; respects Shield) ----
+        lookCard: function (pos) {
+          if (isShielded(state, pos)) { learned.push({ kind: 'blocked', pos: labelOf(state, pos) }); return null; }
+          var rid = printedRoleAt(state, pos);
+          var fact = { kind: 'sawCard', pos: labelOf(state, pos), role: rid, roleName: ctx.roleName(rid) };
+          if (pos[0] === 'p') fact.seat = parseInt(pos.slice(1), 10); // seat index (bots use this)
+          learned.push(fact);
+          return rid;
+        },
+        lookCardSeat: function (s) { return ctx.lookCard(seatPos(s)); },
+        identifyAllies: function (predicate) {
+          var out = [];
+          for (var i = 0; i < state.players.length; i++) {
+            if (i === seat) continue;
+            if (predicate(i)) out.push({ seat: i, name: state.players[i].name });
+          }
+          learned.push({ kind: 'allies', allies: out });
+          return out;
+        },
+        // ---- mutate (respects Shield) ----
+        swap: function (a, b) {
+          if (isShielded(state, a) || isShielded(state, b)) { learned.push({ kind: 'swapBlocked' }); return false; }
+          var tmp = state.positions[a].cardId;
+          state.positions[a].cardId = state.positions[b].cardId;
+          state.positions[b].cardId = tmp;
+          pushLog(state, nameOf(state, seat) + ' moved cards.', true);
+          return true;
+        },
+        transformSelf: function (newRoleId) {
+          // Change the printed role of the card currently in my seat (PI, Witch-as-self).
+          cardAt(state, seatPos(seat)).role = newRoleId;
+        },
+        copyRole: function (newRoleId) {
+          // Doppelgänger: my acting identity AND my card's travelling identity become newRoleId.
+          state.players[seat].copiedRole = newRoleId;
+          var card = cardAt(state, seatPos(seat));
+          if (card.role === 'doppelganger') card.copiedRole = newRoleId;
+          learned.push({ kind: 'copied', role: newRoleId, roleName: ctx.roleName(newRoleId) });
+        },
+        placeToken: function (type, pos) {
+          if (type !== 'shield' && isShielded(state, pos)) { learned.push({ kind: 'tokenBlocked' }); return false; }
+          state.tokens.push({ id: 'tok_' + state.tokens.length, type: type, onPosition: pos });
+          return true;
+        },
+        learn: function (fact) { learned.push(fact); },
+        noop: function (reason) { learned.push({ kind: 'noop', reason: reason || '' }); },
+        // Doppelgänger/Copycat: re-wake this seat to act as a copied role (immediate copies
+        // run right now; group/late copies run at the copied role's natural wake position).
+        roleHasWake: function (id) { return !!(REG[id] && REG[id].wake != null); },
+        reWakeSelfAs: function (id) { scheduleReWake(state, seat, id); },
+        // Reserved-slot access (e.g. Alpha Wolf's center werewolf card).
+        reservedPos: function (forRoleId) {
+          var keys = Object.keys(state.positions);
+          for (var i = 0; i < keys.length; i++) { var p = state.positions[keys[i]]; if (p.kind === 'reserved' && p.forRole === forRoleId) return keys[i]; }
+          return null;
+        },
+        // Cyclically shift the cards among a set of positions (Village Idiot). Shielded skipped.
+        cycleCards: function (positions, dir) {
+          var open = (positions || []).filter(function (p) { return !isShielded(state, p); });
+          if (open.length < 2) { learned.push({ kind: 'noop', reason: 'Not enough movable cards.' }); return; }
+          var ids = open.map(function (p) { return state.positions[p].cardId; });
+          if (dir === 'right') ids.unshift(ids.pop()); else ids.push(ids.shift());
+          open.forEach(function (p, i) { state.positions[p].cardId = ids[i]; });
+          pushLog(state, nameOf(state, seat) + ' shifted everyone\'s cards.', true);
+        },
+        // Turn a player's card face-up for the whole table to see (Revealer). PUBLIC by design.
+        revealFaceUp: function (targetSeat) {
+          if (isShielded(state, seatPos(targetSeat))) { learned.push({ kind: 'noop', reason: 'That card is protected.' }); return; }
+          state.faceUp[targetSeat] = { role: printedRoleAt(state, seatPos(targetSeat)) };
+        },
+        // Turn a CENTER card face-up for the whole table (Exposer). PUBLIC by design.
+        revealCenter: function (i) { state.faceUpCenter[i] = { role: printedRoleAt(state, 'c' + i) }; },
+        // App-chosen action variant for this seat, fixed at deal time (Alien app-driven roles).
+        myVariant: function () { return state.variants[seat]; },
+        // mark helpers attach only when a game initialized state.marks
+        placeMark: function (type, targetSeat) { return placeMark(state, type, targetSeat, learned); },
+        moveMark: function (fromSeat, toSeat) { return moveMark(state, fromSeat, toSeat, learned); },
+        myMarkType: function () { return state.marks ? markTypeOfSeat(state, seat) : null; },
+        markOfSeat: function (s) { return state.marks ? markTypeOfSeat(state, s) : null; },
+        anyMark: function (type) { if (!state.marks) return false; for (var i = 0; i < state.players.length; i++) if (markTypeOfSeat(state, i) === type) return true; return false; },
+        _learned: learned
+      };
+      return ctx;
+    }
+
+    function labelOf(state, pos) {
+      if (pos[0] === 'c') return 'Center ' + (parseInt(pos.slice(1), 10) + 1);
+      var seat = parseInt(pos.slice(1), 10);
+      return nameOf(state, seat) + "'s card";
+    }
+
+    // ---- Mark system primitives (Vampire). Invariant: every seat holds exactly one mark;
+    // a displaced mark returns to the pool. All mark changes go through here (single chokepoint).
+    function markTypeOfSeat(state, seat) {
+      var id = state.marks.bySeat['p' + seat];
+      return id ? state.marks.byId[id].type : null;
+    }
+    function takeMarkFromPool(state, type) {
+      var pool = state.marks.pool, i;
+      for (i = 0; i < pool.length; i++) if (state.marks.byId[pool[i]].type === type) return pool.splice(i, 1)[0];
+      // create one if the game permits (the registry of mark tokens is open by type)
+      var id = 'mk_' + (Object.keys(state.marks.byId).length);
+      state.marks.byId[id] = { id: id, type: type };
+      return id;
+    }
+    function placeMark(state, type, targetSeat, learned) {
+      if (!state.marks) throw new Error('This game has no Mark system.');
+      var key = 'p' + targetSeat;
+      var newId = takeMarkFromPool(state, type);
+      var displaced = state.marks.bySeat[key];
+      state.marks.bySeat[key] = newId;
+      if (displaced != null) state.marks.pool.push(displaced);
+      if (learned) learned.push({ kind: 'mark', target: targetSeat, type: type });
+      assertMarkInvariant(state);
+      return true;
+    }
+    function moveMark(state, fromSeat, toSeat, learned) {
+      if (!state.marks) throw new Error('This game has no Mark system.');
+      var fk = 'p' + fromSeat, tk = 'p' + toSeat;
+      var moving = state.marks.bySeat[fk];
+      var displaced = state.marks.bySeat[tk];
+      state.marks.bySeat[tk] = moving;
+      state.marks.bySeat[fk] = displaced; // swap (keeps the one-mark-per-seat invariant)
+      if (learned) learned.push({ kind: 'markMove', from: fromSeat, to: toSeat });
+      assertMarkInvariant(state);
+      return true;
+    }
+    function assertMarkInvariant(state) {
+      var seatCount = state.players.length;
+      var seen = {};
+      for (var s = 0; s < seatCount; s++) {
+        var id = state.marks.bySeat['p' + s];
+        if (id == null) throw new Error('Mark invariant: seat ' + s + ' has no mark.');
+        if (seen[id]) throw new Error('Mark invariant: duplicate mark id ' + id);
+        seen[id] = true;
+      }
+    }
+
+    // helpers() — a small subset of ctx for engine-internal/per-game hooks (no acting seat).
+    function helpers(state) {
+      return {
+        REG: REG, role: role, teamOfRole: teamOfRole,
+        rngInt: function (n) { return randInt(state, n); },
+        placeMark: function (t, s) { return placeMark(state, t, s); },
+        cardAt: function (pos) { return cardAt(state, pos); },
+        pushLog: function (t, secret) { pushLog(state, t, secret); }
+      };
+    }
+
+    // =========================================================================
+    // Night: step-by-step handoff. getStep() describes the current step for the UI;
+    // submitStep() validates inputs, runs the role's act(), records private knowledge.
+    // =========================================================================
+    function currentStep(state) {
+      if (state.cursor >= state.schedule.length) return null;
+      return state.schedule[state.cursor];
+    }
+
+    // Describe the current step WITHOUT leaking anything to anyone but the acting seat.
+    function getStep(state) {
+      var step = currentStep(state);
+      if (!step) return null;
+      var seat = step.seat;
+      var r = REG[actingRole(state, seat)];
+      var ctx = makeCtx(state, seat);
+      var inputs = (r.inputs ? r.inputs(ctx) : []) || [];
+      // "Pre-info" the acting player is shown before deciding (e.g. ally lists are produced
+      // by acting, so they are NOT pre-shown; this stays empty unless a role opts in).
+      return {
+        cursor: state.cursor,
+        total: state.schedule.length,
+        seat: seat,
+        name: state.players[seat].name,
+        roleId: r.id,
+        roleName: r.name,
+        prompt: r.prompt || (r.name + ', it is your turn.'),
+        optional: !!r.optional,
+        feared: !!(state.marks && markTypeOfSeat(state, seat) === 'fear'), // Mark of Fear: cannot act
+        inputs: inputs
+      };
+    }
+
+    function validateInputs(spec, inputs) {
+      inputs = inputs || {};
+      for (var i = 0; i < spec.length; i++) {
+        var s = spec[i];
+        if (!inputVisible(s, inputs)) continue;
+        var val = inputs[s.id];
+        var empty = (val == null || (Array.isArray(val) && val.length === 0));
+        if (empty && !s.optional) return 'Please choose: ' + (s.label || s.id);
+        if (s.type === 'pickCenter' && Array.isArray(val) && s.count && val.length !== s.count && !empty)
+          return 'Pick exactly ' + s.count + '.';
+      }
+      return null;
+    }
+    function inputVisible(s, inputs) {
+      if (!s.visibleWhen) return true;
+      var key = Object.keys(s.visibleWhen)[0];
+      return inputs[key] === s.visibleWhen[key];
+    }
+
+    function submitStep(state, inputs) {
+      var step = currentStep(state);
+      if (!step) throw new Error('No active night step.');
+      var seat = step.seat;
+      // Mark of Fear: this player cannot use their power tonight (action is skipped).
+      if (state.marks && markTypeOfSeat(state, seat) === 'fear') {
+        state.knowledge[seat] = (state.knowledge[seat] || []).concat([{ kind: 'feared' }]);
+        step.done = true; state.cursor++;
+        if (state._pendingInserts && state._pendingInserts.length) applyPendingInserts(state);
+        maybeEndNight(state);
+        return [{ kind: 'feared' }];
+      }
+      var r = REG[actingRole(state, seat)];
+      var ctx = makeCtx(state, seat);
+      var spec = (r.inputs ? r.inputs(ctx) : []) || [];
+      var err = validateInputs(spec, inputs);
+      if (err) throw new Error(err);
+      if (r.act) r.act(ctx, inputs || {});
+      // Persist what this seat privately learned (by value, at act-time).
+      var facts = ctx._learned.slice();
+      state.knowledge[seat] = (state.knowledge[seat] || []).concat(facts);
+      step.done = true;
+      state.cursor++;
+      // Doppelgänger/Copycat may have requested a synthetic re-wake; honor pending inserts.
+      if (state._pendingInserts && state._pendingInserts.length) {
+        applyPendingInserts(state);
+      }
+      maybeEndNight(state);
+      return facts; // the UI shows these to the acting player, then hides them.
+    }
+
+    // A role copying a LATE role (Insomniac/Revealer/Curator) schedules a re-wake right after it.
+    function scheduleReWake(state, seat, roleId) {
+      state._pendingInserts = state._pendingInserts || [];
+      state._pendingInserts.push({ seat: seat, roleId: roleId });
+    }
+    function applyPendingInserts(state) {
+      var inserts = state._pendingInserts;
+      state._pendingInserts = [];
+      inserts.forEach(function (ins) {
+        var wake = REG[ins.roleId].wake;
+        var insertAt;
+        if (REG[ins.roleId].copyImmediate) {
+          // Immediate copies (Seer/Robber/Troublemaker/Drunk) act right now, as the very next
+          // step — exactly as the Doppelgänger does at the table (cursor already points past the
+          // Doppelgänger's own step, so `cursor` is the next-to-run slot).
+          insertAt = state.cursor;
+        } else {
+          // Group/late copies (Werewolf/Minion/Mason/Insomniac) re-wake at the copied role's
+          // natural wake position (after a same-wake dealt step), so allies/own-card resolve.
+          insertAt = state.schedule.length;
+          for (var i = state.cursor; i < state.schedule.length; i++) {
+            if (state.schedule[i].wake > wake) { insertAt = i; break; }
+          }
+        }
+        if (insertAt < state.cursor) insertAt = state.cursor; // never re-run a passed step
+        state.schedule.splice(insertAt, 0, {
+          seat: ins.seat, roleId: ins.roleId, wake: wake,
+          origin: 'rewake', done: false
+        });
+        state.schedule.forEach(function (s, i2) { s.idx = i2; });
+      });
+    }
+
+    function maybeEndNight(state) {
+      if (state.cursor >= state.schedule.length && state.phase === 'night') {
+        state.phase = 'day';
+        pushLog(state, 'Morning breaks. Time to discuss and vote.');
+      }
+    }
+
+    function beginNight(state) {
+      state.phase = 'night';
+      state.cursor = 0;
+      pushLog(state, 'Night falls.');
+      return state;
+    }
+
+    // =========================================================================
+    // Narrator mode: emit the ordered call/response script WITHOUT resolving anything.
+    // =========================================================================
+    function buildNarrationScript(state) {
+      var lines = [];
+      lines.push({ kind: 'all', text: 'Everyone, close your eyes.' });
+      // Group consecutive same-wake roles (werewolves, masons) into one call.
+      var byWake = {};
+      var order = [];
+      state.schedule.forEach(function (s) {
+        if (s.origin !== 'dealt') return; // narrator uses the natural role order
+        var key = REG[s.roleId].narrationGroup || s.roleId;
+        if (!byWake[key]) { byWake[key] = { roleId: s.roleId, wake: REG[s.roleId].wake }; order.push(key); }
+      });
+      order.sort(function (a, b) { return byWake[a].wake - byWake[b].wake; });
+      // de-dup roles already merged by group; emit each role's open/close once.
+      var emitted = {};
+      order.forEach(function (key) {
+        var rid = byWake[key].roleId, r = REG[rid];
+        if (emitted[r.id]) return; emitted[r.id] = true;
+        var n = r.narration || {};
+        var built = n.build ? n.build(state, REG) : null;
+        if (built) { built.forEach(function (l) { lines.push(l); }); return; }
+        if (n.open) lines.push({ kind: 'role', roleId: r.id, text: n.open });
+        if (n.close) lines.push({ kind: 'role', roleId: r.id, text: n.close });
+      });
+      lines.push({ kind: 'all', text: 'Everyone, wake up.' });
+      return lines;
+    }
+
+    // Narrator mode (physical cards): build the ordered call/response script directly from a
+    // configured role SET (no deal needed). Each waking role is called once, in wake order.
+    function narrationForRoleSet(roleSet) {
+      var present = {};
+      roleSet.forEach(function (id) { if (REG[id] && REG[id].wake != null) present[id] = true; });
+      var ids = Object.keys(present).sort(function (a, b) { return REG[a].wake - REG[b].wake; });
+      var lines = [{ kind: 'all', text: 'Everyone, close your eyes.' }];
+      var emittedGroup = {};
+      ids.forEach(function (id) {
+        var r = REG[id];
+        var grp = r.narrationGroup || id;
+        if (emittedGroup[grp]) return; emittedGroup[grp] = true;
+        var n = r.narration || {};
+        var built = n.build ? n.build({ config: { roleSet: roleSet } }, REG) : null;
+        if (built) { built.forEach(function (l) { lines.push(l); }); return; }
+        if (n.open) lines.push({ kind: 'role', roleId: id, text: n.open });
+        if (n.close) lines.push({ kind: 'role', roleId: id, text: n.close });
+      });
+      lines.push({ kind: 'all', text: 'Everyone, wake up.' });
+      return lines;
+    }
+
+    // =========================================================================
+    // Day vote + resolution. Simultaneous: each living player points at another.
+    // =========================================================================
+    function beginVote(state) {
+      state.phase = 'vote';
+      state.votes = {};
+      return state;
+    }
+    function castVote(state, seat, targetSeat) {
+      if (state.phase !== 'vote') throw new Error('Not voting.');
+      if (seat === targetSeat) throw new Error('You must point at another player.');
+      if (!state.players[targetSeat]) throw new Error('No such player.');
+      state.votes[seat] = targetSeat;
+      return state;
+    }
+    function allVotesIn(state) {
+      for (var i = 0; i < state.players.length; i++) if (state.votes[i] == null) return false;
+      return true;
+    }
+
+    // Base death rule: most-voted die; ties at the max all die; nobody dies if max <= 1.
+    function baseDeaths(tally, playerCount) {
+      var max = 0, s;
+      for (s = 0; s < playerCount; s++) max = Math.max(max, tally[s] || 0);
+      var deaths = [];
+      if (max <= 1) return deaths; // a perfect spread => no one dies
+      for (s = 0; s < playerCount; s++) if ((tally[s] || 0) === max) deaths.push(s);
+      return deaths;
+    }
+
+    function resolveVotes(state, manualTally) {
+      if (state.phase !== 'vote') throw new Error('Not voting.');
+      var pc = state.players.length, s;
+      var tally = [];
+      for (s = 0; s < pc; s++) tally[s] = 0;
+      if (manualTally) {
+        for (s = 0; s < pc; s++) tally[s] = manualTally[s] || 0;
+      } else {
+        for (s = 0; s < pc; s++) { var t = state.votes[s]; if (t != null) tally[t] = (tally[t] || 0) + 1; }
+      }
+      state.voteTally = tally;
+
+      var deaths = baseDeaths(tally, pc);
+
+      // Vote modifiers from in-play roles (Hunter linked-kill, Bodyguard, Master, Lovers...).
+      // Each runs with a small ctx and may add/remove deaths; iterate to a fixpoint.
+      var modifiers = collectVoteModifiers(state);
+      var changed = true, guard = 0;
+      while (changed && guard++ < 50) {
+        changed = false;
+        for (var m = 0; m < modifiers.length; m++) {
+          var before = deaths.slice();
+          deaths = modifiers[m]({
+            state: state, tally: tally, deaths: deaths,
+            finalRoleId: function (seat) { return finalRoleId(state, seat); },
+            finalTeamOf: function (seat) { return finalTeamOf(state, seat); },
+            votes: state.votes
+          }) || deaths;
+          if (deaths.length !== before.length || before.some(function (x, i) { return deaths[i] !== x; })) changed = true;
+        }
+      }
+      // de-dup + mark dead.
+      var seen = {}; var clean = [];
+      deaths.forEach(function (d) { if (!seen[d]) { seen[d] = true; clean.push(d); } });
+      state.deaths = clean;
+      clean.forEach(function (d) { state.players[d].alive = false; });
+
+      resolveOutcome(state);
+      state.phase = 'end';
+      return state;
+    }
+
+    function collectVoteModifiers(state) {
+      var mods = [];
+      // gather from each in-play (by-seat) role's voteModifier
+      var seenRole = {};
+      state.players.forEach(function (p) {
+        var rid = finalRoleId(state, p.seat);
+        if (REG[rid] && REG[rid].voteModifier && !seenRole[rid]) { /* per-role, but applies per holder */ }
+      });
+      // Apply per holder (some modifiers need the specific seat), so build closures per seat.
+      state.players.forEach(function (p) {
+        var rid = finalRoleId(state, p.seat);
+        var r = REG[rid];
+        if (r && r.voteModifier) {
+          mods.push(function (vc) { return r.voteModifier(vc, p.seat); });
+        }
+      });
+      (def.voteModifiers || []).forEach(function (m) { mods.push(m); });
+      return mods;
+    }
+
+    // =========================================================================
+    // Win resolution — base Werewolf-family rules + composable per-role contributors.
+    // Multiple teams can win. Returns result on state.result.
+    // =========================================================================
+    function resolveOutcome(state) {
+      // A game with very different win conditions (e.g. Vampire/Alien teams) can fully replace
+      // the base Werewolf-family resolution.
+      if (def.resolveOutcome) {
+        state.result = def.resolveOutcome(state, outcomeHelpers(state));
+        pushLog(state, 'Winner(s): ' + ((state.result.winners || []).join(', ') || 'no one'));
+        return state.result;
+      }
+      var pc = state.players.length, s;
+      var deaths = state.deaths;
+      var diedSet = {}; deaths.forEach(function (d) { diedSet[d] = true; });
+
+      var wwSeats = [], tannerSeats = [], minionSeats = [];
+      for (s = 0; s < pc; s++) {
+        if (isFinalWerewolf(state, s)) wwSeats.push(s);
+        var rid = finalRoleId(state, s);
+        if (REG[rid] && REG[rid].tanner) tannerSeats.push(s);
+        if (REG[rid] && REG[rid].minion) minionSeats.push(s);
+      }
+      var werewolfDied = deaths.some(function (d) { return isFinalWerewolf(state, d); });
+      var someoneDied = deaths.length > 0;
+
+      var winners = {}; // team -> true
+      function add(team) { winners[team] = true; }
+
+      // ---- base village / werewolf ----
+      var villageWin = werewolfDied || (wwSeats.length === 0 && !someoneDied);
+      var werewolfWin = wwSeats.length > 0 && !werewolfDied;
+
+      // ---- minion: when there are no werewolves in play, the minion (werewolf team) wins
+      //      if any non-minion player dies. ----
+      if (wwSeats.length === 0 && minionSeats.length > 0) {
+        var nonMinionDied = deaths.some(function (d) { return minionSeats.indexOf(d) === -1; });
+        if (nonMinionDied) werewolfWin = true;
+        else if (someoneDied) villageWin = true; // the village lynched only the Minion — they win
+      }
+
+      // ---- tanner (solo): wins iff a tanner dies; suppresses the werewolf win unless a
+      //      werewolf also died (in which case the village also wins). ----
+      var tannerDied = deaths.some(function (d) { return tannerSeats.indexOf(d) !== -1; });
+      if (tannerDied) {
+        add('tanner');
+        if (werewolfDied) villageWin = true; else werewolfWin = false;
+      }
+
+      if (villageWin) add('village');
+      if (werewolfWin) add('werewolf');
+
+      // ---- composable extra contributors (later games: vampire/alien/solo roles) ----
+      var wc = makeWinContext(state, deaths, diedSet, wwSeats, werewolfDied, someoneDied);
+      collectWinContributors(state).forEach(function (c) {
+        var verdict = c(wc);
+        if (verdict && verdict.win && verdict.team) add(verdict.team);
+        if (verdict && verdict.suppress) delete winners[verdict.suppress];
+      });
+
+      // Disqualifications (e.g. Disease: a voter for the marked player cannot win) — flag pass.
+      var dq = {};
+      collectDisqualifiers(state).forEach(function (d) { d(wc, dq); });
+
+      state.result = {
+        winners: Object.keys(winners),
+        deaths: deaths.slice(),
+        disqualifiedSeats: Object.keys(dq).map(Number),
+        teamsBySeat: state.players.map(function (p) { return finalTeamOf(state, p.seat); }),
+        rolesBySeat: state.players.map(function (p) { return finalRoleId(state, p.seat); })
+      };
+      pushLog(state, 'Winner(s): ' + (state.result.winners.join(', ') || 'no one'));
+      return state.result;
+    }
+
+    // Helpers handed to a game's custom resolveOutcome (Vampire/Alien).
+    function outcomeHelpers(state) {
+      return {
+        deaths: state.deaths.slice(),
+        players: state.players,
+        REG: REG,
+        finalRoleId: function (s) { return finalRoleId(state, s); },
+        finalTeamOf: function (s) { return finalTeamOf(state, s); },
+        markOf: function (s) { return state.marks ? markTypeOfSeat(state, s) : null; },
+        roleFlag: function (s, flag) { var r = REG[finalRoleId(state, s)]; return !!(r && r[flag]); },
+        neighbors: function (s) { return neighbors(state, s); },
+        votes: state.votes,
+        died: function (s) { return state.deaths.indexOf(s) !== -1; }
+      };
+    }
+
+    function makeWinContext(state, deaths, diedSet, wwSeats, werewolfDied, someoneDied) {
+      return {
+        state: state, deaths: deaths, diedSet: diedSet, players: state.players,
+        finalRoleId: function (s) { return finalRoleId(state, s); },
+        finalTeamOf: function (s) { return finalTeamOf(state, s); },
+        isFinalWerewolf: function (s) { return isFinalWerewolf(state, s); },
+        wwSeats: wwSeats, werewolfDied: werewolfDied, someoneDied: someoneDied,
+        votes: state.votes, marks: state.marks, neighbors: function (s) { return neighbors(state, s); }
+      };
+    }
+    function collectWinContributors(state) {
+      var list = (def.winContributors || []).slice();
+      var seen = {};
+      state.players.forEach(function (p) {
+        var rid = finalRoleId(state, p.seat);
+        var r = REG[rid];
+        if (r && r.winContributor && !seen[r.id + p.seat]) {
+          seen[r.id + p.seat] = true;
+          list.push(function (wc) { return r.winContributor(wc, p.seat); });
+        }
+      });
+      return list;
+    }
+    function collectDisqualifiers(state) {
+      var list = [];
+      state.players.forEach(function (p) {
+        var rid = finalRoleId(state, p.seat);
+        var r = REG[rid];
+        if (r && r.disqualifier) list.push(function (wc, dq) { return r.disqualifier(wc, dq, p.seat); });
+      });
+      return list;
+    }
+
+    // =========================================================================
+    // Bot play — computer-controlled seats. Night actions are chosen legally (random via the
+    // engine PRNG, so deterministic + replayable); votes use a light heuristic from the bot's
+    // OWN private knowledge (never from anything a human couldn't also deduce).
+    // =========================================================================
+    function isBot(state, seat) { return !!(state.players[seat] && state.players[seat].bot); }
+    function centerCountOf(state) { return Object.keys(state.positions).filter(function (k) { return k[0] === 'c'; }).length; }
+
+    function botInputsForCurrent(state) {
+      var step = currentStep(state); if (!step) return {};
+      var seat = step.seat, r = REG[actingRole(state, seat)];
+      var ctx = makeCtx(state, seat);
+      var spec = (r.inputs ? r.inputs(ctx) : []) || [];
+      var inputs = {};
+      spec.forEach(function (s) {
+        if (s.visibleWhen) { var k = Object.keys(s.visibleWhen)[0]; if (inputs[k] !== s.visibleWhen[k]) return; }
+        if (s.type === 'choice') {
+          inputs[s.id] = s.options[randInt(state, s.options.length)].value;
+        } else if (s.type === 'pickPlayer') {
+          var legal = [];
+          for (var i = 0; i < state.players.length; i++) {
+            if (i === seat) continue;
+            if (s.exclude && s.exclude.indexOf(i) !== -1) continue;
+            legal.push(i);
+          }
+          if (s.optional && nextRand(state) < 0.25) inputs[s.id] = null;
+          else inputs[s.id] = legal.length ? legal[randInt(state, legal.length)] : null;
+        } else if (s.type === 'pickCenter') {
+          var idxs = []; for (var c = 0; c < centerCountOf(state); c++) idxs.push(c);
+          shuffleInPlace(state, idxs);
+          inputs[s.id] = idxs.slice(0, s.count || 1);
+        }
+      });
+      return inputs;
+    }
+
+    // Resolve every consecutive bot night step until the next human (or night end).
+    function autoResolveBotNight(state) {
+      var n = 0;
+      while (state.phase === 'night') {
+        var step = currentStep(state);
+        if (!step || !isBot(state, step.seat)) break;
+        submitStep(state, botInputsForCurrent(state));
+        if (n++ > 500) break;
+      }
+      return n;
+    }
+
+    function botVote(state, seat) {
+      var pc = state.players.length;
+      var meRole = actingRole(state, seat);
+      var wolfAligned = isWerewolfRole(meRole) || (REG[meRole] && REG[meRole].minion);
+      var know = state.knowledge[seat] || [];
+      var allies = {}, knownWolves = [];
+      know.forEach(function (f) {
+        if (f.kind === 'allies') f.allies.forEach(function (a) { allies[a.seat] = true; });
+        if (f.kind === 'sawCard' && f.seat != null && isWerewolfRole(f.role)) knownWolves.push(f.seat);
+      });
+      var others = [];
+      for (var i = 0; i < pc; i++) if (i !== seat) others.push(i);
+      if (wolfAligned) {
+        // a wolf-aligned bot avoids voting its known partners
+        var nonAllies = others.filter(function (i) { return !allies[i]; });
+        var pool = nonAllies.length ? nonAllies : others;
+        return pool[randInt(state, pool.length)];
+      }
+      // village/solo bot: prefer a known wolf, else a random other player
+      var wolves = knownWolves.filter(function (i) { return i !== seat; });
+      if (wolves.length) return wolves[randInt(state, wolves.length)];
+      return others[randInt(state, others.length)];
+    }
+    function autoCastBotVotes(state) {
+      for (var i = 0; i < state.players.length; i++) {
+        if (isBot(state, i) && state.votes[i] == null) castVote(state, i, botVote(state, i));
+      }
+    }
+
+    // =========================================================================
+    // INFORMATION BOUNDARY — what the shared (public) screen may render.
+    // Returns NOTHING that could identify a role/team/card before the end.
+    // =========================================================================
+    function publicView(state) {
+      return {
+        game: state.game,
+        mode: state.mode,
+        phase: state.phase,
+        playerCount: state.players.length,
+        centerCount: Object.keys(state.positions).filter(function (k) { return k[0] === 'c'; }).length,
+        players: state.players.map(function (p) {
+          return { seat: p.seat, name: p.name, number: p.number, alive: p.alive };
+        }),
+        // role-set CARDS in play are public knowledge in this family, but NOT who holds them:
+        rolesInPlay: countRolesInPlay(state),
+        nightProgress: { cursor: state.cursor, total: state.schedule.length },
+        // Cards a role turned face-up are intentionally public (the table is meant to see them).
+        revealedCards: Object.keys(state.faceUp).map(function (s) {
+          var rid = state.faceUp[s].role;
+          return { seat: +s, name: state.players[s].name, roleName: (REG[rid] || {}).name };
+        }),
+        revealedCenter: Object.keys(state.faceUpCenter || {}).map(function (i) {
+          var rid = state.faceUpCenter[i].role;
+          return { index: +i, roleName: (REG[rid] || {}).name };
+        }),
+        votesCast: Object.keys(state.votes).length,
+        // results only exist after the game ends (state.result), surfaced separately:
+        ended: state.phase === 'end'
+      };
+    }
+    function countRolesInPlay(state) {
+      var counts = {};
+      state.config.roleSet.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; });
+      return Object.keys(counts).map(function (id) {
+        return { roleId: id, roleName: (REG[id] && REG[id].name) || id, count: counts[id], wake: REG[id] ? REG[id].wake : null };
+      }).sort(function (a, b) {
+        var aw = a.wake == null ? 999 : a.wake, bw = b.wake == null ? 999 : b.wake;
+        return aw - bw;
+      });
+    }
+
+    // PRIVATE: what a single seat is entitled to see (gated behind a per-player handoff).
+    function privateReveal(state, seat) {
+      return {
+        seat: seat,
+        name: state.players[seat].name,
+        dealtRole: state.players[seat].dealtRole,
+        dealtRoleName: (REG[state.players[seat].dealtRole] || {}).name,
+        knowledge: (state.knowledge[seat] || []).slice(),
+        // tokens on your card you are entitled to peek (e.g. a Daybreak Artifact)
+        tokens: state.tokens.filter(function (t) { return t.onPosition === 'p' + seat; }).map(function (t) { return t.type; }),
+        // your current Mark (Vampire), which you are entitled to know
+        mark: state.marks ? markTypeOfSeat(state, seat) : null
+      };
+    }
+
+    // Full truth — only valid AFTER the game ends (used by the end-of-night reveal/recap).
+    function endReveal(state) {
+      if (state.phase !== 'end') return null;
+      return {
+        winners: state.result.winners,
+        deaths: state.deaths.slice(),
+        seats: state.players.map(function (p) {
+          return {
+            seat: p.seat, name: p.name,
+            dealtRole: p.dealtRole, dealtRoleName: (REG[p.dealtRole] || {}).name,
+            finalRole: finalRoleId(state, p.seat), finalRoleName: (REG[finalRoleId(state, p.seat)] || {}).name,
+            team: finalTeamOf(state, p.seat),
+            alive: p.alive
+          };
+        }),
+        center: Object.keys(state.positions).filter(function (k) { return k[0] === 'c'; }).map(function (pos) {
+          var rid = printedRoleAt(state, pos);
+          return { pos: pos, role: rid, roleName: (REG[rid] || {}).name };
+        }),
+        log: state.log.slice()
+      };
+    }
+
+    // =========================================================================
+    // Public api
+    // =========================================================================
+    return {
+      game: def.game,
+      registry: REG,
+      // config
+      defaultConfig: defaultConfig,
+      validateConfig: validateConfig,
+      defaultNames: defaultNames,
+      presetRoleSet: presetRoleSet,
+      // lifecycle
+      newGame: newGame,
+      rebuildSchedule: buildSchedule,
+      beginNight: beginNight,
+      buildNarrationScript: buildNarrationScript,
+      narrationForRoleSet: narrationForRoleSet,
+      // night
+      getStep: getStep,
+      submitStep: submitStep,
+      currentStep: currentStep,
+      scheduleReWake: scheduleReWake,
+      // vote + outcome
+      beginVote: beginVote,
+      castVote: castVote,
+      allVotesIn: allVotesIn,
+      resolveVotes: resolveVotes,
+      baseDeaths: baseDeaths,
+      // bots
+      isBot: isBot,
+      botInputsForCurrent: botInputsForCurrent,
+      autoResolveBotNight: autoResolveBotNight,
+      botVote: botVote,
+      autoCastBotVotes: autoCastBotVotes,
+      // queries
+      finalRoleId: finalRoleId,
+      finalTeamOf: finalTeamOf,
+      isFinalWerewolf: isFinalWerewolf,
+      actingRole: actingRole,
+      teamOfRole: teamOfRole,
+      // boundary
+      publicView: publicView,
+      privateReveal: privateReveal,
+      endReveal: endReveal,
+      // seeded RNG (for deterministic UI decisions like decoy-handoff placement)
+      rand: function (state) { return nextRand(state); },
+      randInt: function (state, n) { return randInt(state, n); },
+      // util
+      serialize: function (state) { return JSON.stringify(state); },
+      deserialize: function (s) { return JSON.parse(s); },
+      _internals: { nextRand: nextRand, shuffleInPlace: shuffleInPlace, REG: REG }
+    };
+  }
+
+  return { createEngine: createEngine, version: '0.1.0' };
+});
+
+  </script>
+  <script>
+/*
+ * base-roles.js — the shared base role definitions used by more than one game in the family
+ * (Werewolf is just these; Daybreak/Vampire/Alien reuse them and add their own). Pure data +
+ * small act()/inputs() handlers that drive the engine. No DOM.
+ *
+ * UMD: in the browser, the inlined script sets window.PARTY_BASE; Node requires it. App
+ * roles.js files read PARTY_BASE.roles and concatenate their own roles onto it.
+ *
+ * Wake order (lower acts first; null = never wakes):
+ *   -7 Doppelgänger · 2 Werewolf · 3 Minion · 4 Mason · 5 Seer · 6 Robber
+ *    · 7 Troublemaker · 8 Drunk · 9 Insomniac · (Hunter/Tanner/Villager never wake)
+ */
+(function (root, factory) {
+  var B = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = B;
+  if (root) root.PARTY_BASE = B;
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function () {
+  'use strict';
+
+  function wolfCount(ctx) {
+    var n = 0;
+    for (var s = 0; s < ctx.playerCount; s++) if (ctx.actsAsWerewolf(s)) n++;
+    return n;
+  }
+  function inSet(state, id) { return state && state.config && state.config.roleSet && state.config.roleSet.indexOf(id) !== -1; }
+
+  var roles = [
+    {
+      id: 'werewolf', name: 'Werewolf', team: 'werewolf', werewolf: true, wake: 2, maxCopies: 2,
+      narrationGroup: 'werewolf',
+      blurb: 'You and your fellow Werewolves wake to recognize each other. Survive the vote.',
+      prompt: 'Open your eyes and find your fellow Werewolves.',
+      narration: {
+        open: 'Werewolves, wake up and look for other Werewolves.',
+        close: 'Werewolves, close your eyes.',
+        // expanded call when the Dream Wolf variant is present
+        build: function (state) {
+          if (!inSet(state, 'dream_wolf')) return null;
+          return [
+            { kind: 'role', roleId: 'werewolf', text: 'Werewolves except the Dream Wolf, wake up and look for other Werewolves. Dream Wolf, keep your eyes closed and raise a thumb.' },
+            { kind: 'role', roleId: 'werewolf', text: 'Dream Wolf, lower your thumb. Werewolves, close your eyes.' }
+          ];
+        }
+      },
+      inputs: function (ctx) {
+        var alone = wolfCount(ctx) === 1;
+        if (alone && ctx.options.loneWolf) {
+          return [
+            { id: 'peek', type: 'choice', label: 'You are the lone Werewolf', options: [
+              { value: 'yes', label: 'Peek at one center card' },
+              { value: 'no', label: 'Do not peek' }
+            ] },
+            { id: 'center', type: 'pickCenter', count: 1, label: 'Which center card?', visibleWhen: { peek: 'yes' } }
+          ];
+        }
+        return [];
+      },
+      act: function (ctx, inputs) {
+        ctx.identifyAllies(function (s) { return ctx.actsAsWerewolf(s); });
+        if (inputs.peek === 'yes' && inputs.center && inputs.center.length) ctx.lookCard(ctx.centerPos(inputs.center[0]));
+      }
+    },
+
+    {
+      id: 'minion', name: 'Minion', team: 'werewolf', minion: true, wake: 3, maxCopies: 1,
+      blurb: 'You serve the Werewolves. You see them; they do not see you. Keep them safe.',
+      prompt: 'See who the Werewolves are.',
+      narration: { open: 'Minion, wake up. Werewolves, raise a thumb so the Minion can see you.', close: 'Werewolves, lower your thumbs. Minion, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(function (s) { return ctx.actsAsWerewolf(s); }); }
+    },
+
+    {
+      id: 'mason', name: 'Mason', team: 'village', wake: 4, maxCopies: 2,
+      narrationGroup: 'mason',
+      blurb: 'You and the other Mason know each other to be on the village team.',
+      prompt: 'Find the other Mason.',
+      narration: { open: 'Masons, wake up and look for the other Mason.', close: 'Masons, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(function (s) { return ctx.actingRole(s) === 'mason'; }); },
+      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair — use 0 or 2.' }]; return []; }
+    },
+
+    {
+      id: 'seer', name: 'Seer', team: 'village', wake: 5, maxCopies: 1, optional: true, copyImmediate: true,
+      blurb: 'Look at one other player\'s card, OR two of the center cards.',
+      prompt: 'You may look at one player\'s card or two center cards.',
+      narration: { open: 'Seer, wake up. You may look at one other player\'s card, or two of the center cards.', close: 'Seer, close your eyes.' },
+      inputs: function (ctx) {
+        return [
+          { id: 'mode', type: 'choice', label: 'How will you look?', options: [
+            { value: 'player', label: 'One player\'s card' }, { value: 'center', label: 'Two center cards' }, { value: 'skip', label: 'Do not look' }
+          ] },
+          { id: 'player', type: 'pickPlayer', label: 'Whose card?', exclude: [ctx.self], visibleWhen: { mode: 'player' } },
+          { id: 'centers', type: 'pickCenter', count: 2, label: 'Which two center cards?', visibleWhen: { mode: 'center' } }
+        ];
+      },
+      act: function (ctx, inputs) {
+        if (inputs.mode === 'player' && inputs.player != null) ctx.lookCardSeat(inputs.player);
+        else if (inputs.mode === 'center' && inputs.centers) inputs.centers.forEach(function (i) { ctx.lookCard(ctx.centerPos(i)); });
+        else ctx.noop('Seer chose not to look.');
+      }
+    },
+
+    {
+      id: 'robber', name: 'Robber', team: 'village', wake: 6, maxCopies: 1, optional: true, copyImmediate: true,
+      blurb: 'You may swap your card with another player\'s, then look at your new card.',
+      prompt: 'You may swap your card with another player\'s, then see your new card.',
+      narration: { open: 'Robber, wake up. You may swap your card with another player\'s, then look at your new card.', close: 'Robber, close your eyes.' },
+      inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Rob whose card? (or skip)', exclude: [ctx.self], optional: true }]; },
+      act: function (ctx, inputs) {
+        if (inputs.target == null) { ctx.noop('Robber chose not to rob.'); return; }
+        ctx.swap(ctx.seatPos(ctx.self), ctx.seatPos(inputs.target));
+        ctx.lookCard(ctx.seatPos(ctx.self));
+      }
+    },
+
+    {
+      id: 'troublemaker', name: 'Troublemaker', team: 'village', wake: 7, maxCopies: 1, optional: true, copyImmediate: true,
+      blurb: 'You may swap the cards of two other players, without looking at either.',
+      prompt: 'You may swap two other players\' cards (you will not see them).',
+      narration: { open: 'Troublemaker, wake up. You may swap the cards of two other players.', close: 'Troublemaker, close your eyes.' },
+      inputs: function (ctx) {
+        return [
+          { id: 'a', type: 'pickPlayer', label: 'First player (or skip both)', exclude: [ctx.self], optional: true },
+          { id: 'b', type: 'pickPlayer', label: 'Second player', exclude: [ctx.self], optional: true }
+        ];
+      },
+      act: function (ctx, inputs) {
+        if (inputs.a == null || inputs.b == null || inputs.a === inputs.b) { ctx.noop('Troublemaker swapped no one.'); return; }
+        ctx.swap(ctx.seatPos(inputs.a), ctx.seatPos(inputs.b));
+      }
+    },
+
+    {
+      id: 'drunk', name: 'Drunk', team: 'village', wake: 8, maxCopies: 1, copyImmediate: true,
+      blurb: 'You must swap your card with a center card, without looking. You no longer know who you are.',
+      prompt: 'Swap your card with a center card (you will not see it).',
+      narration: { open: 'Drunk, wake up and swap your card with a card from the center.', close: 'Drunk, close your eyes.' },
+      inputs: function () { return [{ id: 'center', type: 'pickCenter', count: 1, label: 'Take which center card? (you will not see it)' }]; },
+      act: function (ctx, inputs) { ctx.swap(ctx.seatPos(ctx.self), ctx.centerPos(inputs.center[0])); ctx.noop('You took a center card without looking.'); }
+    },
+
+    {
+      id: 'insomniac', name: 'Insomniac', team: 'village', wake: 9, maxCopies: 1,
+      blurb: 'At the end of the night you look at your own card to see if it changed.',
+      prompt: 'Look at your own card.',
+      narration: { open: 'Insomniac, wake up and look at your own card.', close: 'Insomniac, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.lookCard(ctx.seatPos(ctx.self)); },
+      validate: function (q) {
+        var swapper = q.has('robber') || q.has('troublemaker') || q.has('drunk') || q.has('witch') || q.has('village_idiot');
+        if (!swapper) return [{ level: 'warn', text: 'Insomniac has little to do without a card-mover (Robber, Troublemaker, Drunk, Witch, Village Idiot) in play.' }];
+        return [];
+      }
+    },
+
+    {
+      id: 'hunter', name: 'Hunter', team: 'village', wake: null, maxCopies: 1,
+      blurb: 'If you die, the player you voted for dies too.',
+      voteModifier: function (vc, seat) {
+        if (vc.deaths.indexOf(seat) === -1) return vc.deaths;
+        var tgt = vc.votes[seat];
+        if (tgt != null && vc.deaths.indexOf(tgt) === -1) return vc.deaths.concat([tgt]);
+        return vc.deaths;
+      }
+    },
+
+    {
+      id: 'tanner', name: 'Tanner', team: 'tanner', solo: true, tanner: true, wake: null, maxCopies: 1,
+      blurb: 'You hate your life. You win only if you die. You are on no team.'
+    },
+
+    { id: 'villager', name: 'Villager', team: 'village', wake: null, blurb: 'No special ability — but definitely not a Werewolf.' },
+
+    {
+      id: 'doppelganger', name: 'Doppelgänger', team: function () { return 'village'; }, wake: -7, maxCopies: 1,
+      blurb: 'View one player\'s card and become that role for the rest of the game.',
+      prompt: 'View one player\'s card — you become that role.',
+      narration: { open: 'Doppelgänger, wake up and look at one other player\'s card. You are now that role.', close: 'Doppelgänger, close your eyes.' },
+      inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Copy whose card?', exclude: [ctx.self] }]; },
+      act: function (ctx, inputs) {
+        var copied = ctx.lookCardSeat(inputs.target);
+        if (!copied || copied === 'doppelganger') { ctx.noop('Nothing to copy.'); return; }
+        ctx.copyRole(copied);
+        if (ctx.roleHasWake(copied)) ctx.reWakeSelfAs(copied);
+      },
+      validate: function () { return [{ level: 'warn', text: 'The Doppelgänger adds the most complexity — best added once the table knows the other roles.' }]; }
+    }
+  ];
+
+  function byId() { var m = {}; roles.forEach(function (r) { m[r.id] = r; }); return m; }
+  return { roles: roles, byId: byId, wolfCount: wolfCount };
+});
+
+  </script>
+  <script>
+/*
+ * roles.js (Alien) — village roles plus the Alien team and several app-driven / solo roles.
+ * Some roles take a per-game ACTION VARIANT chosen at deal time (state.variants[seat]) so the
+ * same role plays differently each game (the "app-driven" feel): Oracle (which relic), Alien
+ * (probe vs convert), Exposer (how many center cards), Mortician (how many neighbors).
+ * Solo win roles: Synthetic (wins if it dies, dooming alien+village), Blob (its cluster must
+ * survive), Mortician (a neighbor must die), Groob & Zerb (frenemies when both are dealt).
+ * UMD: Node tests require() this; the inlined browser bundle reads window.PARTY_GAME.
+ */
+(function (root, factory) {
+  var BASE = (root && root.PARTY_BASE) ? root.PARTY_BASE : (function () {
+    try { return require('@partydeck/core/roles/base-roles'); }
+    catch (e) { return require('../../../packages/core/src/roles/base-roles.js'); }
+  })();
+  var G = factory(BASE);
+  if (typeof module !== 'undefined' && module.exports) module.exports = G;
+  if (root) { root.PARTY_GAME = G; root.ALIEN_GAME = G; }
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function (BASE) {
+  'use strict';
+
+  function alienPred(ctx) { return function (s) { return ctx.roleHasFlag(ctx.actingRole(s), 'alien'); }; }
+  function tokenAlien(state, seat) { return state.tokens.some(function (t) { return t.type === 'alienized' && t.onPosition === 'p' + seat; }); }
+
+  var alien = [
+    {
+      id: 'oracle', name: 'Oracle', team: 'village', wake: -9, maxCopies: 1, variants: 3,
+      blurb: 'The signal shows you one relic in the center each game.',
+      prompt: 'The signal reveals a center relic to you.',
+      narration: { open: 'Oracle, wake up — the signal shows you a center card.', close: 'Oracle, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.lookCard(ctx.centerPos(ctx.myVariant() % ctx.centerCount)); }
+    },
+
+    {
+      id: 'alien', name: 'Alien', team: 'alien', alien: true, wake: 1, maxCopies: 3, variants: 2,
+      narrationGroup: 'alien',
+      blurb: 'Wake with the others. Each game your tech does something different — probe a card, or convert a human.',
+      prompt: 'Find the others, then use your tech.',
+      narration: { open: 'Aliens, wake and find each other, then use your technology.', close: 'Aliens, close your eyes.' },
+      inputs: function (ctx) {
+        if (ctx.myVariant() === 0) return [{ id: 'target', type: 'pickPlayer', label: 'You may probe one player\'s card', exclude: [ctx.self], optional: true }];
+        return [{ id: 'target', type: 'pickPlayer', label: 'You may convert one human into an Alien', exclude: [ctx.self], optional: true }];
+      },
+      act: function (ctx, inputs) {
+        ctx.identifyAllies(alienPred(ctx));
+        if (inputs.target == null) { ctx.noop('No tech used.'); return; }
+        if (ctx.myVariant() === 0) ctx.lookCardSeat(inputs.target);
+        else { ctx.placeToken('alienized', ctx.seatPos(inputs.target)); ctx.learn({ kind: 'alienized' }); }
+      }
+    },
+
+    {
+      id: 'synthetic', name: 'Synthetic', team: 'synth', solo: true, alien: true, wake: 1.0, maxCopies: 1,
+      narrationGroup: 'alien',
+      blurb: 'You wake with the Aliens, but your tech is too dangerous for anyone. You win only if you are eliminated.',
+      prompt: 'Find the Aliens — but you serve only yourself.',
+      narration: { open: 'The Synthetic wakes with the Aliens.', close: 'The Synthetic closes its eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
+    },
+
+    {
+      id: 'cow', name: 'Cow', team: 'village', wake: 1.6, maxCopies: 1,
+      blurb: 'You sense whether an Alien sits right beside you.',
+      prompt: 'Sense the night around you.',
+      narration: { open: 'Cow, wake up — you sense if an Alien is beside you.', close: 'Cow, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { var n = ctx.neighbors(ctx.self); ctx.learn({ kind: 'cowSense', alienAdjacent: n.some(function (s) { return ctx.roleHasFlag(ctx.actingRole(s), 'alien'); }) }); }
+    },
+
+    {
+      id: 'groob', name: 'Groob', team: 'alien', alien: true, wake: 1.3, maxCopies: 1,
+      narrationGroup: 'alien',
+      blurb: 'An Alien — but if Zerb is also in play, you are frenemies and win only if Zerb dies and you live.',
+      prompt: 'Find the others.',
+      narration: { open: 'Groob wakes with the Aliens.', close: 'Groob closes their eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
+    },
+    {
+      id: 'zerb', name: 'Zerb', team: 'alien', alien: true, wake: 1.31, maxCopies: 1,
+      narrationGroup: 'alien',
+      blurb: 'An Alien — but if Groob is also in play, you are frenemies and win only if Groob dies and you live.',
+      prompt: 'Find the others.',
+      narration: { open: 'Zerb wakes with the Aliens.', close: 'Zerb closes their eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
+    },
+
+    {
+      id: 'leader', name: 'Leader', team: 'village', wake: 3.3, maxCopies: 1,
+      blurb: 'You see who the Aliens are. (If both Groob and Zerb play, you win only if both of them survive.)',
+      prompt: 'See who the Aliens are.',
+      narration: { open: 'Leader, wake up — all Aliens, raise a thumb.', close: 'Aliens, lower your thumbs. Leader, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
+    },
+
+    {
+      id: 'psychic', name: 'Psychic', team: 'village', wake: 5.7, maxCopies: 1, optional: true,
+      blurb: 'You may read up to two players\' cards.',
+      prompt: 'You may read up to two players.',
+      narration: { open: 'Psychic, wake up. You may read up to two players\' cards.', close: 'Psychic, close your eyes.' },
+      inputs: function (ctx) {
+        return [
+          { id: 'a', type: 'pickPlayer', label: 'Read whose card? (or skip)', exclude: [ctx.self], optional: true },
+          { id: 'b', type: 'pickPlayer', label: 'And a second? (optional)', exclude: [ctx.self], optional: true }
+        ];
+      },
+      act: function (ctx, inputs) {
+        var did = false;
+        if (inputs.a != null) { ctx.lookCardSeat(inputs.a); did = true; }
+        if (inputs.b != null && inputs.b !== inputs.a) { ctx.lookCardSeat(inputs.b); did = true; }
+        if (!did) ctx.noop('Psychic read no one.');
+      }
+    },
+
+    {
+      id: 'rascal', name: 'Rascal', team: 'village', wake: 7.6, maxCopies: 1, optional: true,
+      blurb: 'You may swap two players\' cards, without looking.',
+      prompt: 'You may swap two players\' cards.',
+      narration: { open: 'Rascal, wake up. You may swap two players\' cards.', close: 'Rascal, close your eyes.' },
+      inputs: function (ctx) {
+        return [
+          { id: 'a', type: 'pickPlayer', label: 'First player (or skip)', exclude: [ctx.self], optional: true },
+          { id: 'b', type: 'pickPlayer', label: 'Second player', exclude: [ctx.self], optional: true }
+        ];
+      },
+      act: function (ctx, inputs) { if (inputs.a == null || inputs.b == null || inputs.a === inputs.b) { ctx.noop('Rascal swapped no one.'); return; } ctx.swap(ctx.seatPos(inputs.a), ctx.seatPos(inputs.b)); }
+    },
+
+    {
+      id: 'exposer', name: 'Exposer', team: 'village', wake: 10.2, maxCopies: 1, optional: true, variants: 3,
+      blurb: 'Each game you may expose a set number of center cards for all to see (all of them or none).',
+      prompt: 'You may expose center cards for the whole table.',
+      narration: { open: 'Exposer, wake up. You may turn the signalled center cards face-up.', close: 'Exposer, close your eyes.' },
+      inputs: function (ctx) {
+        var k = (ctx.myVariant() % ctx.centerCount) + 1;
+        return [
+          { id: 'mode', type: 'choice', label: 'You may expose exactly ' + k + ' center card(s)', options: [{ value: 'yes', label: 'Expose ' + k }, { value: 'no', label: 'Expose none' }] },
+          { id: 'centers', type: 'pickCenter', count: k, label: 'Which ' + k + '?', visibleWhen: { mode: 'yes' } }
+        ];
+      },
+      act: function (ctx, inputs) { if (inputs.mode !== 'yes') { ctx.noop('Exposer exposed nothing.'); return; } inputs.centers.forEach(function (i) { ctx.revealCenter(i); }); }
+    },
+
+    {
+      id: 'mortician', name: 'Mortician', team: 'mortician', solo: true, wake: 13.1, maxCopies: 1, variants: 3,
+      blurb: 'You may peek at some neighbors. You win if one of your neighbors is eliminated.',
+      prompt: 'You inspect those beside you.',
+      narration: { open: 'Mortician, wake up — you may inspect your neighbors.', close: 'Mortician, close your eyes.' },
+      inputs: function () { return []; },
+      act: function (ctx) { var v = ctx.myVariant(), n = ctx.neighbors(ctx.self); for (var i = 0; i < v && i < n.length; i++) ctx.lookCardSeat(n[i]); if (v === 0) ctx.noop('The mortician rests.'); }
+    },
+
+    {
+      id: 'blob', name: 'Blob', team: 'blob', solo: true, wake: null, maxCopies: 1,
+      blurb: 'You and the players beside you are one organism. You win if none of your cluster is eliminated.'
+    }
+  ];
+
+  function onNewGame(state, h) {
+    state.variants = {};
+    state.players.forEach(function (p) { var r = h.REG[p.dealtRole]; if (r && r.variants) state.variants[p.seat] = h.rngInt(r.variants); });
+  }
+  function finalTeamOverride(state, seat) { return tokenAlien(state, seat) ? 'alien' : null; }
+
+  function resolveOutcome(state, H) {
+    var pc = state.players.length, s;
+    var deaths = H.deaths; function died(x) { return deaths.indexOf(x) !== -1; } function role(x) { return H.finalRoleId(x); }
+    function isAlien(x) { return H.roleFlag(x, 'alien') || tokenAlien(state, x); }
+
+    var winners = {}; function add(t) { winners[t] = true; }
+    var someoneDied = deaths.length > 0;
+    // "alien in play" for village/alien outcome means a seat actually on the ALIEN TEAM — the
+    // Synthetic carries the alien flag for night/targeting but is solo, so it must NOT make the
+    // alien team "win" on its own.
+    var aliensInPlay = 0, anyAlienDied = false, alienTeamInPlay = 0;
+    for (s = 0; s < pc; s++) {
+      if (isAlien(s)) { aliensInPlay++; if (died(s)) anyAlienDied = true; }
+      if (H.finalTeamOf(s) === 'alien') alienTeamInPlay++;
+    }
+
+    var villageWins = anyAlienDied || (aliensInPlay === 0 && !someoneDied);
+    var alienWins = alienTeamInPlay > 0 && !anyAlienDied;
+
+    // Synthetic catastrophe: if it dies, only it wins; alien & village both lose.
+    var synthSeat = -1; for (s = 0; s < pc; s++) if (role(s) === 'synthetic') synthSeat = s;
+    if (synthSeat >= 0 && died(synthSeat)) { add('synth'); villageWins = false; alienWins = false; }
+
+    // Groob & Zerb frenemies (only when both are dealt to players).
+    var groob = -1, zerb = -1; for (s = 0; s < pc; s++) { if (role(s) === 'groob') groob = s; if (role(s) === 'zerb') zerb = s; }
+    var bothFrenemies = groob >= 0 && zerb >= 0;
+    if (bothFrenemies) {
+      if (died(zerb) && !died(groob)) add('groob');
+      if (died(groob) && !died(zerb)) add('zerb');
+    }
+    // Leader: with both frenemies in play, wins iff both survive; otherwise wins with the village.
+    var leaderSeat = -1; for (s = 0; s < pc; s++) if (role(s) === 'leader') leaderSeat = s;
+    if (leaderSeat >= 0 && bothFrenemies && !died(groob) && !died(zerb)) add('leader');
+
+    if (villageWins) add('village');
+    if (alienWins) add('alien');
+
+    for (s = 0; s < pc; s++) if (role(s) === 'blob') { var nb = H.neighbors(s); if (![s].concat(nb).some(died)) add('blob'); }
+    for (s = 0; s < pc; s++) if (role(s) === 'mortician') { if (H.neighbors(s).some(died)) add('mortician'); }
+    for (s = 0; s < pc; s++) if (role(s) === 'tanner' && died(s)) add('tanner');
+
+    return {
+      winners: Object.keys(winners), deaths: deaths.slice(), disqualifiedSeats: [],
+      teamsBySeat: state.players.map(function (p) { return H.finalTeamOf(p.seat); }),
+      rolesBySeat: state.players.map(function (p) { return H.finalRoleId(p.seat); })
+    };
+  }
+
+  var villageBase = BASE.roles.filter(function (r) { return ['werewolf', 'minion'].indexOf(r.id) === -1; });
+
+  var presets = {
+    3: ['alien', 'alien', 'seer', 'robber', 'villager', 'villager'],
+    4: ['alien', 'alien', 'seer', 'robber', 'cow', 'villager', 'villager'],
+    5: ['alien', 'alien', 'seer', 'robber', 'cow', 'oracle', 'villager', 'villager'],
+    6: ['alien', 'synthetic', 'seer', 'robber', 'cow', 'oracle', 'psychic', 'villager', 'villager'],
+    7: ['alien', 'synthetic', 'seer', 'robber', 'cow', 'oracle', 'psychic', 'exposer', 'villager', 'villager'],
+    8: ['alien', 'alien', 'synthetic', 'seer', 'robber', 'cow', 'oracle', 'psychic', 'exposer', 'villager', 'villager'],
+    9: ['alien', 'alien', 'synthetic', 'leader', 'seer', 'robber', 'cow', 'oracle', 'psychic', 'exposer', 'mortician', 'villager'],
+    10: ['alien', 'alien', 'synthetic', 'leader', 'seer', 'robber', 'cow', 'oracle', 'psychic', 'exposer', 'mortician', 'rascal', 'villager']
+  };
+
+  return {
+    game: 'alien',
+    title: 'Alien',
+    roles: villageBase.concat(alien),
+    presets: presets,
+    centerCount: 3,
+    defaultOptions: {},
+    onNewGame: onNewGame,
+    finalTeamOverride: finalTeamOverride,
+    resolveOutcome: resolveOutcome,
+    teams: [
+      { id: 'village', name: 'Village', good: true },
+      { id: 'alien', name: 'Aliens', good: false },
+      { id: 'synth', name: 'Synthetic', solo: true },
+      { id: 'blob', name: 'Blob', solo: true },
+      { id: 'mortician', name: 'Mortician', solo: true },
+      { id: 'groob', name: 'Groob', solo: true },
+      { id: 'zerb', name: 'Zerb', solo: true },
+      { id: 'leader', name: 'Leader' },
+      { id: 'tanner', name: 'Tanner', solo: true }
+    ]
+  };
+});
+
+  </script>
+  <script>
+/*
+ * sound.js — tiny synthesized SFX via WebAudio. window.PartySound.play(name).
+ * No assets, no network. Safe no-op if WebAudio is unavailable or muted.
+ */
+(function () {
+  'use strict';
+  var ctx = null, enabled = true;
+  function ac() {
+    if (ctx) return ctx;
+    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; }
+    return ctx;
+  }
+  function tone(freq, dur, type, gain, when) {
+    var a = ac(); if (!a || !enabled) return;
+    var t0 = a.currentTime + (when || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain || 0.12, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  var SOUNDS = {
+    tap: function () { tone(420, 0.07, 'triangle', 0.08); },
+    reveal: function () { tone(330, 0.18, 'sine', 0.12); tone(495, 0.22, 'sine', 0.10, 0.06); },
+    pass: function () { tone(260, 0.10, 'sine', 0.08); },
+    night: function () { tone(180, 0.5, 'sine', 0.09); tone(120, 0.6, 'sine', 0.07, 0.05); },
+    day: function () { tone(523, 0.18, 'sine', 0.11); tone(659, 0.18, 'sine', 0.10, 0.09); tone(784, 0.3, 'sine', 0.10, 0.18); },
+    vote: function () { tone(300, 0.12, 'square', 0.07); },
+    win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.25, 'triangle', 0.11, i * 0.12); }); },
+    tick: function () { tone(880, 0.04, 'square', 0.05); }
+  };
+  window.PartySound = {
+    play: function (name) { try { var f = SOUNDS[name]; if (f) f(); } catch (e) {} },
+    setEnabled: function (v) { enabled = !!v; },
+    isEnabled: function () { return enabled; },
+    resume: function () { var a = ac(); if (a && a.state === 'suspended') a.resume(); }
+  };
+})();
+
+  </script>
+  <script>
+/*
+ * ui-core.js — the shared pass-and-play UI for every game in the family. Reads window.GameCore
+ * (engine) + window.PARTY_GAME (this game's definition + presets + meta). No game-specific
+ * logic lives here; per-game copy comes from PARTY_GAME / window.PARTY_META.
+ *
+ * INFORMATION BOUNDARY (the cardinal rule): shared/observable screens render ONLY from
+ * engine.publicView() and NEVER show a role/team/card or any role-coded color or icon. Anything
+ * private (your dealt role, what you saw at night) appears ONLY behind a per-player handoff
+ * gate. During the night the device is handed to EVERY player (real actors + indistinguishable
+ * decoys) so observers can't even tell who has a night role.
+ */
+(function () {
+  'use strict';
+  var DEF = window.PARTY_GAME;
+  var META = window.PARTY_META || {};
+  var E = window.GameCore.createEngine(DEF);
+  var S = window.PartySound || { play: function () {}, resume: function () {}, setEnabled: function () {}, isEnabled: function () { return true; } };
+  var KEY = 'pg_' + DEF.game;
+  var REG = {}; DEF.roles.forEach(function (r) { REG[r.id] = r; });
+
+  var view = 'home';      // home | help | setup | play
+  var G = null;           // engine state
+  var draft = null;       // config being edited
+  var ui = {};            // transient per-screen UI state
+  var app = document.getElementById('app');
+
+  // ---- persistence (resume an in-progress game) ----
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ view: view, G: G, ui: stripUi() })); } catch (e) {} }
+  function stripUi() { return { flow: ui.flow || null }; }
+  function loadSaved() { try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function clearSaved() { try { localStorage.removeItem(KEY); } catch (e) {} }
+
+  function esc(s) { return ('' + (s == null ? '' : s)).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function roleName(id) { return (REG[id] && REG[id].name) || id; }
+  function title() { return DEF.title || META.title || DEF.game; }
+
+  // =========================================================================
+  // Render router
+  // =========================================================================
+  function render() {
+    var html;
+    if (view === 'home') html = renderHome();
+    else if (view === 'help') html = renderHelp();
+    else if (view === 'setup') html = renderSetup();
+    else if (view === 'play') html = renderPlay();
+    else html = renderHome();
+    app.innerHTML = html;
+    bind();
+    // Only jump to the top when the LOGICAL screen changes — selecting an input or editing the
+    // setup re-renders the same screen and must preserve the player's scroll position.
+    var key = screenKey();
+    if (key !== ui._lastKey) { window.scrollTo(0, 0); ui._lastKey = key; }
+    manageTurnTimer();
+  }
+  function screenKey() {
+    var k = view;
+    if (view === 'play' && G) { k += ':' + G.phase; if (ui.flow) k += ':' + ui.flow.kind + ':' + ui.flow.stage + ':' + (ui.flow.idx == null ? '' : ui.flow.idx); }
+    return k;
+  }
+
+  // =========================================================================
+  // Home
+  // =========================================================================
+  function renderHome() {
+    var saved = loadSaved();
+    var resume = saved && saved.G && saved.G.phase !== 'end' ? '<button class="btn" data-act="resume">Resume game</button>' : '';
+    return screen(true,
+      '<h1>' + esc(title()) + '</h1>' +
+      '<p class="tagline">' + esc(META.tagline || 'A social-deduction party game. One secret night. One vote. Find them out.') + '</p>' +
+      resume +
+      '<button class="btn" data-act="new">New game</button>' +
+      '<button class="btn secondary" data-act="help">How to play &amp; roles</button>' +
+      '<p class="footer-note">Pass &amp; play on one device, for ' + minPlayers() + '–' + maxPlayers() + ' players.</p>'
+    );
+  }
+  function minPlayers() { return 3; }
+  function maxPlayers() { return 10; }
+
+  // =========================================================================
+  // Help / glossary (general info — no secrecy concerns)
+  // =========================================================================
+  function renderHelp() {
+    var rolesByWake = DEF.roles.slice().sort(function (a, b) {
+      var aw = a.wake == null ? 999 : a.wake, bw = b.wake == null ? 999 : b.wake; return aw - bw;
+    });
+    var list = rolesByWake.map(function (r) {
+      var team = teamLabel(typeof r.team === 'function' ? 'varies' : r.team);
+      return '<div class="panel"><div class="row"><b>' + esc(r.name) + '</b><span class="spacer"></span><span class="pill">' + esc(team) + '</span></div>' +
+        '<div class="small muted">' + esc(r.blurb || '') + '</div></div>';
+    }).join('');
+    return screen(false,
+      '<div class="row"><h1>How to play</h1></div>' +
+      '<div class="panel"><p><b>Goal.</b> Everyone is secretly dealt a role. Over one night, some roles wake (in order) to peek at or swap cards — so by morning you may not be who you started as. Then everyone discusses and votes; the most-voted player is eliminated. Which team wins depends on who is eliminated.</p>' +
+      '<p class="small muted">Your role can change during the night without you knowing. The team that wins is decided by the card you hold at the very end.</p></div>' +
+      '<h2>Roles</h2>' + list +
+      '<button class="btn secondary" data-act="home">Back</button>'
+    );
+  }
+  function teamLabel(t) {
+    var teams = DEF.teams || [];
+    for (var i = 0; i < teams.length; i++) if (teams[i].id === t) return teams[i].name;
+    if (t === 'varies') return 'Varies';
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  // =========================================================================
+  // Setup / configuration (maximum-configurable, but validated)
+  // =========================================================================
+  function newDraft(pc) {
+    var c = E.defaultConfig(pc);
+    c.botCount = 0;
+    if (c.turnTimerSeconds == null) c.turnTimerSeconds = 30; // roles are timed by default
+    return c;
+  }
+  function applyBotNames(d) {
+    var pc = d.playerCount, bc = d.botCount || 0;
+    for (var i = 0; i < pc; i++) {
+      var isBot = i >= pc - bc;
+      if (isBot) d.playerNames[i] = 'Bot ' + (i - (pc - bc) + 1);
+      else if (/^Bot \d+$/.test(d.playerNames[i] || '')) d.playerNames[i] = 'Player ' + (i + 1);
+    }
+  }
+  function renderSetup() {
+    if (!draft) draft = newDraft(5);
+    var v = E.validateConfig(draft);
+    return screen(false,
+      '<div class="row"><h1>New game</h1><span class="spacer"></span><button class="btn ghost small" data-act="home">Cancel</button></div>' +
+
+      // Player count
+      '<label class="field">Players</label>' +
+      '<div class="stepper panel">' +
+      '<button class="stepbtn" data-act="pc-">−</button>' +
+      '<span class="val">' + draft.playerCount + '</span>' +
+      '<button class="stepbtn" data-act="pc+">+</button>' +
+      '</div>' +
+
+      // Bots
+      '<label class="field">Computer players (bots)</label>' +
+      '<div class="stepper panel"><button class="stepbtn" data-act="bot-">−</button><span class="val">' + (draft.botCount || 0) + '</span><button class="stepbtn" data-act="bot+">+</button></div>' +
+      '<p class="small muted">Bots fill seats and play on their own — great for practice or a small group. At least one human always plays.</p>' +
+
+      // Names
+      '<label class="field">Player names</label>' +
+      '<div class="stack">' + draft.playerNames.map(function (n, i) {
+        var bot = i >= draft.playerCount - (draft.botCount || 0);
+        return '<input type="text" data-name="' + i + '" value="' + esc(n) + '" ' + (bot ? 'readonly' : '') + ' placeholder="Player ' + (i + 1) + '" />';
+      }).join('') + '</div>' +
+
+      // Mode
+      '<label class="field">How are you playing?</label>' +
+      modeToggle() +
+
+      // Role set editor
+      '<h2>Roles in the deck</h2>' +
+      '<p class="small muted">You need exactly <b>' + (draft.playerCount + draft.centerCount) + '</b> cards (' + draft.playerCount + ' players + ' + draft.centerCount + ' center). <button class="btn ghost small" style="display:inline-block;width:auto;padding:4px 10px" data-act="preset">Use recommended</button></p>' +
+      roleEditor() +
+      cardCountBar() +
+
+      // Options
+      optionsBlock() +
+
+      // Per-turn role timer (each player's secret action is timed; auto-advances on expiry)
+      '<label class="field">Per-turn timer (each role\'s action)</label>' +
+      '<div class="stepper panel"><button class="stepbtn" data-act="tt-">−</button><span class="val">' + (draft.turnTimerSeconds ? draft.turnTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="tt+">+</button></div>' +
+
+      // Day timer
+      '<label class="field">Day discussion timer</label>' +
+      '<div class="stepper panel"><button class="stepbtn" data-act="t-">−</button><span class="val">' + (draft.dayTimerSeconds ? draft.dayTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="t+">+</button></div>' +
+
+      // Validation + start (Start is disabled — not just an error at the bottom — until the setup is legal)
+      renderValidation(v) +
+      '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : 'Fix the setup above to start') + '</button>'
+    );
+  }
+
+  function modeToggle() {
+    function opt(val, label, desc) {
+      var sel = draft.mode === val ? ' sel' : '';
+      return '<div class="choice' + sel + '" data-mode="' + val + '" style="text-align:left">' +
+        '<b>' + label + '</b><div class="small muted">' + desc + '</div></div>';
+    }
+    return '<div class="grid">' +
+      opt('digital', 'Digital', 'The phone holds the cards and runs the night for you.') +
+      opt('narrator', 'Narrator', 'You use physical cards; the app calls the night order.') +
+      '</div>';
+  }
+
+  function roleCounts() {
+    var counts = {}; draft.roleSet.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; }); return counts;
+  }
+  function roleEditor() {
+    var counts = roleCounts();
+    var ordered = DEF.roles.slice().sort(function (a, b) {
+      var aw = a.wake == null ? 999 : a.wake, bw = b.wake == null ? 999 : b.wake; return aw - bw;
+    });
+    return ordered.map(function (r) {
+      var c = counts[r.id] || 0;
+      return '<div class="panel"><div class="row">' +
+        '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">' + esc(r.blurb || '') + '</span></div>' +
+        '<button class="stepbtn" data-role-minus="' + r.id + '">−</button>' +
+        '<span class="val" style="min-width:30px">' + c + '</span>' +
+        '<button class="stepbtn" data-role-plus="' + r.id + '">+</button>' +
+        '</div></div>';
+    }).join('');
+  }
+  function cardCountBar() {
+    var have = draft.roleSet.length, need = draft.playerCount + draft.centerCount;
+    var cls = have === need ? 'good' : 'danger';
+    return '<div class="panel center-text"><b style="color:var(--' + cls + ')">' + have + ' / ' + need + ' cards</b></div>';
+  }
+
+  function optionsBlock() {
+    var opts = DEF.defaultOptions || {};
+    var keys = Object.keys(opts);
+    if (!keys.length) return '';
+    var labels = (META.optionLabels) || {};
+    return '<h2>House rules</h2>' + keys.map(function (k) {
+      var on = draft.options[k];
+      return '<div class="toggle panel" data-opt="' + k + '"><div><b>' + esc(labels[k] || k) + '</b></div>' +
+        '<div class="sw' + (on ? ' on' : '') + '"><div class="knob"></div></div></div>';
+    }).join('');
+  }
+
+  function renderValidation(v) {
+    if (v.ok && !v.warnings.length) return '';
+    return '<div class="stack">' +
+      v.errors.map(function (e) { return '<div class="err">⛔ ' + esc(e) + '</div>'; }).join('') +
+      v.warnings.map(function (w) { return '<div class="warn">⚠ ' + esc(w) + '</div>'; }).join('') +
+      '</div>';
+  }
+
+  // =========================================================================
+  // Play — dispatch on engine phase + UI flow
+  // =========================================================================
+  function renderPlay() {
+    if (G.mode === 'narrator') return renderNarrator();
+    if (G.phase === 'reveal') return renderReveal();
+    if (G.phase === 'night') return renderNight();
+    if (G.phase === 'day') return renderDay();
+    if (G.phase === 'vote') return renderVote();
+    if (G.phase === 'end') return renderEnd();
+    return renderHome();
+  }
+
+  // ---- Initial private role reveal (digital): each player privately sees their card ----
+  function renderReveal() {
+    if (!ui.flow) ui.flow = { kind: 'reveal', idx: 0, stage: 'gate' };
+    var f = ui.flow;
+    while (f.idx < G.players.length && G.players[f.idx].bot) f.idx++; // bots have no reveal
+    if (f.idx >= G.players.length) { // done revealing -> night
+      E.beginNight(G); S.play('night');
+      ui.flow = null; save(); return renderNight();
+    }
+    var p = G.players[f.idx];
+    if (f.stage === 'gate') {
+      return gateScreen(p.name, 'Make sure only ' + esc(p.name) + ' can see the screen.', 'I am ' + esc(p.name) + ' — show my role', 'reveal-show');
+    }
+    // show role privately
+    var r = REG[p.dealtRole];
+    return screen(true,
+      timerBadge() +
+      '<p class="muted">' + esc(p.name) + ', your secret role is</p>' +
+      '<div class="big-role">' + esc(r.name) + '</div>' +
+      '<p class="muted" style="max-width:340px">' + esc(r.blurb || '') + '</p>' +
+      '<div class="divider"></div>' +
+      '<button class="btn" data-act="reveal-next">Hide &amp; pass on</button>'
+    );
+  }
+
+  // ---- Night: hand the device to EVERY player (real actors + decoys), in resolution order ----
+  function buildHandoffs() {
+    var sched = G.schedule;
+    // Only HUMAN seats get a handoff; bot night actions resolve invisibly.
+    var reals = sched.filter(function (st) { return !G.players[st.seat].bot; }).map(function (st) { return { kind: 'real', seat: st.seat }; });
+    var actionSeats = {}; sched.forEach(function (st) { actionSeats[st.seat] = true; });
+    var result = reals.slice();
+    if (G.config.hideRoleHolders !== false) {
+      G.players.forEach(function (p) {
+        if (!p.bot && !actionSeats[p.seat]) { // decoy for a human with no night action
+          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded — deterministic + unpredictable
+          result.splice(pos, 0, { kind: 'decoy', seat: p.seat });
+        }
+      });
+    }
+    return result;
+  }
+  function renderNight() {
+    if (G.phase === 'night') E.autoResolveBotNight(G);          // clear any bot steps first
+    if (G.phase !== 'night') { ui.flow = null; save(); return renderDay(); }
+    if (!ui.flow || ui.flow.kind !== 'night') ui.flow = { kind: 'night', plan: buildHandoffs(), idx: 0, stage: 'gate', facts: null };
+    var f = ui.flow;
+
+    // Drain: if the plan is exhausted but the engine still has steps (e.g. a Doppelgänger
+    // re-wake added one, or trailing bot steps), resolve bots then append human steps.
+    if (f.idx >= f.plan.length) {
+      E.autoResolveBotNight(G);
+      if (E.currentStep(G)) {
+        var rwSeat = E.currentStep(G).seat;
+        f.plan.push({ kind: 'real', seat: rwSeat });
+        // A re-wake (e.g. Doppelgänger copying a late role) would otherwise hand the device to one
+        // player a second time, leaking who they are. Dilute it with a decoy handoff for someone else.
+        if (G.config.hideRoleHolders !== false) {
+          var others = G.players.filter(function (p) { return !p.bot && p.seat !== rwSeat; });
+          if (others.length) f.plan.push({ kind: 'decoy', seat: others[E.randInt(G, others.length)].seat });
+        }
+      } else { ui.flow = null; save(); return renderDay(); }
+    }
+    var entry = f.plan[f.idx];
+    var liveStep = (entry.kind === 'real') ? E.getStep(G) : null;
+    // If a real entry has no live step left (consumed by drains), skip it.
+    if (entry.kind === 'real' && !liveStep) { f.idx++; return renderNight(); }
+    var who = entry.kind === 'real' ? liveStep.name : G.players[entry.seat].name;
+
+    if (f.stage === 'gate') {
+      return gateScreen(who, 'Eyes on your own screen only. (Everyone takes a turn — passing the phone reveals nothing.)',
+        'I am ' + esc(who) + ' — continue', 'night-open');
+    }
+    if (entry.kind === 'decoy') {
+      return screen(true,
+        timerBadge() +
+        '<p class="muted">Night</p><div class="big-role">…</div>' +
+        '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along — don\'t let anyone read your screen.</p>' +
+        '<button class="btn secondary" data-act="night-next">Pass on</button>'
+      );
+    }
+    // real action
+    if (f.stage === 'act') return renderAct(liveStep);
+    if (f.stage === 'result') return renderActResult(f.facts);
+    return renderNight();
+  }
+
+  function renderAct(step) {
+    ui.inputs = ui.inputs || {};
+    if (step.feared) {
+      return screen(true,
+        timerBadge() +
+        '<p class="muted">Your secret role</p>' +
+        '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
+        '<div class="panel">You carry the <b>Mark of Fear</b> — you cannot use your power tonight.</div>' +
+        '<button class="btn" data-act="act-confirm">Continue</button>'
+      );
+    }
+    var inputsHtml = step.inputs.map(function (spec) { return renderInput(spec); }).join('');
+    var canConfirm = clientInputsValid(step.inputs, ui.inputs);
+    return screen(false,
+      timerBadge() +
+      '<p class="muted">Your secret role</p>' +
+      '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
+      '<p class="small muted">' + esc(step.prompt) + '</p>' +
+      '<div class="divider"></div>' +
+      inputsHtml +
+      '<button class="btn" data-act="act-confirm" ' + (canConfirm ? '' : 'disabled') + '>Confirm</button>'
+    );
+  }
+  function renderInput(spec) {
+    if (spec.visibleWhen) {
+      var k = Object.keys(spec.visibleWhen)[0];
+      if (ui.inputs[k] !== spec.visibleWhen[k]) return '';
+    }
+    var html = '<label class="field">' + esc(spec.label || '') + '</label>';
+    if (spec.type === 'choice') {
+      html += '<div class="grid">' + spec.options.map(function (o) {
+        var sel = ui.inputs[spec.id] === o.value ? ' sel' : '';
+        return '<div class="choice' + sel + '" data-choice="' + spec.id + '" data-val="' + esc(o.value) + '">' + esc(o.label) + '</div>';
+      }).join('') + '</div>';
+    } else if (spec.type === 'pickPlayer') {
+      html += '<div class="grid">' + G.players.map(function (p) {
+        if (p.seat === ui.curSelf && !spec.allowSelf) return '';
+        if (spec.exclude && spec.exclude.indexOf(p.seat) !== -1) return '';
+        var sel = ui.inputs[spec.id] === p.seat ? ' sel' : '';
+        return '<div class="choice' + sel + '" data-pick="' + spec.id + '" data-seat="' + p.seat + '">' + esc(p.name) + '</div>';
+      }).join('') + (spec.optional ? '<div class="choice' + (ui.inputs[spec.id] === null ? ' sel' : '') + '" data-pick="' + spec.id + '" data-seat="null">Skip</div>' : '') + '</div>';
+    } else if (spec.type === 'pickCenter') {
+      var cur = ui.inputs[spec.id] || [];
+      html += '<div class="grid">' + range(G.config.centerCount).map(function (i) {
+        var sel = cur.indexOf(i) !== -1 ? ' sel' : '';
+        return '<div class="choice' + sel + '" data-center="' + spec.id + '" data-idx="' + i + '" data-count="' + (spec.count || 1) + '">Center ' + (i + 1) + '</div>';
+      }).join('') + '</div><div class="small muted">Pick ' + (spec.count || 1) + '.</div>';
+    }
+    return html;
+  }
+  function clientInputsValid(spec, inputs) {
+    for (var i = 0; i < spec.length; i++) {
+      var s = spec[i];
+      if (s.visibleWhen) { var k = Object.keys(s.visibleWhen)[0]; if (inputs[k] !== s.visibleWhen[k]) continue; }
+      var val = inputs[s.id];
+      var empty = (val == null || (Array.isArray(val) && val.length === 0));
+      if (empty && !s.optional && !(s.type === 'pickPlayer' && val === null)) return false;
+      if (s.type === 'pickCenter' && Array.isArray(val) && s.count && val.length !== s.count) return false;
+    }
+    return true;
+  }
+  function renderActResult(facts) {
+    var lines = (facts || []).map(factText).filter(Boolean);
+    if (!lines.length) lines = ['Done.'];
+    return screen(true,
+      timerBadge() +
+      '<p class="muted">You learned</p>' +
+      lines.map(function (l) { return '<div class="panel">' + esc(l) + '</div>'; }).join('') +
+      '<div class="divider"></div>' +
+      '<button class="btn" data-act="night-next">Hide &amp; pass on</button>'
+    );
+  }
+  function factText(f) {
+    switch (f.kind) {
+      case 'sawCard': return 'You saw ' + f.pos + ': ' + f.roleName + '.';
+      case 'allies':
+        if (!f.allies.length) return 'You found no partners — you appear to be alone.';
+        return 'With you: ' + f.allies.map(function (a) { return a.name; }).join(', ') + '.';
+      case 'copied': return 'You are now the ' + f.roleName + '.';
+      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' — you have joined them.';
+      case 'shielded': return 'You placed a protective shield on a card.';
+      case 'placedArtifact': return 'You placed a face-down Artifact (you did not see which).';
+      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner — turned back face-down.';
+      case 'feared': return 'You carry the Mark of Fear — you could not act tonight.';
+      case 'mark': return 'You placed a mark.';
+      case 'markMove': return 'You moved a mark.';
+      case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected — nothing happened.';
+      case 'noop': return f.reason || 'You did nothing.';
+      default: return '';
+    }
+  }
+
+  // ---- Day (discussion + optional timer) ----
+  function renderDay() {
+    var timer = '';
+    if (G.config.dayTimerSeconds) {
+      if (ui.timerLeft == null) ui.timerLeft = G.config.dayTimerSeconds;
+      timer = '<div class="timer">' + fmt(ui.timerLeft) + '</div>';
+    }
+    var pv = E.publicView(G);
+    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); })
+      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' — ' + esc(r.roleName); }));
+    var revealed = revLines.length ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + revLines.join('<br>') + '</div>' : '';
+    return screen(true,
+      '<h1>Morning</h1>' +
+      '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +
+      revealed +
+      timer +
+      '<button class="btn" data-act="to-vote">Everyone ready — vote</button>' +
+      '<button class="btn ghost" data-act="recheck">Privately re-check my role</button>'
+    );
+  }
+
+  // ---- Vote (secret pass-and-play to keep it simultaneous) ----
+  function renderVote() {
+    if (!ui.flow || ui.flow.kind !== 'vote') {
+      E.autoCastBotVotes(G); // bots vote automatically
+      ui.flow = { kind: 'vote', idx: 0, stage: 'gate', humans: G.players.filter(function (p) { return !p.bot; }).map(function (p) { return p.seat; }) };
+    }
+    var f = ui.flow;
+    if (f.idx >= f.humans.length) {
+      E.resolveVotes(G); S.play('day'); ui.flow = null; save(); return renderEnd();
+    }
+    var p = G.players[f.humans[f.idx]];
+    if (f.stage === 'gate') {
+      return gateScreen(p.name, 'Cast your vote in secret — all votes reveal together.', 'I am ' + esc(p.name) + ' — vote', 'vote-open');
+    }
+    ui.curSelf = p.seat;
+    return screen(false,
+      '<p class="muted">' + esc(p.name) + ', point at the player you want eliminated.</p>' +
+      '<div class="grid">' + G.players.map(function (q) {
+        if (q.seat === p.seat) return '';
+        return '<div class="choice" data-vote="' + q.seat + '">' + esc(q.name) + (q.bot ? ' 🤖' : '') + '</div>';
+      }).join('') + '</div>'
+    );
+  }
+
+  // ---- End: full reveal + recap (post-game, revealing all is correct) ----
+  function renderEnd() {
+    var rev = E.endReveal(G);
+    S.play('win');
+    var winners = rev.winners.length ? rev.winners.map(teamLabel).join(' &amp; ') : 'No one';
+    var deaths = rev.deaths.length ? rev.deaths.map(function (s) { return G.players[s].name; }).join(', ') : 'No one';
+    var rows = rev.seats.map(function (s) {
+      var changed = s.dealtRole !== s.finalRole;
+      return '<div class="reveal-row"><div class="nm">' + esc(s.name) + (s.alive ? '' : ' <span class="dead-tag">✗ eliminated</span>') + '</div>' +
+        '<div style="text-align:right">' + esc(s.finalRoleName) +
+        (changed ? '<div class="small muted">started as ' + esc(s.dealtRoleName) + '</div>' : '') +
+        '<div class="small muted">' + esc(teamLabel(s.team)) + '</div></div></div>';
+    }).join('');
+    var center = rev.center.map(function (c) { return '<span class="pill">' + esc(c.roleName) + '</span>'; }).join('');
+    return screen(false,
+      '<h1 class="result-win">' + winners + ' win!</h1>' +
+      '<p class="muted">Eliminated: ' + esc(deaths) + '</p>' +
+      '<h2>Final roles</h2>' + rows +
+      '<h3>Center cards</h3><div>' + center + '</div>' +
+      '<div class="divider"></div>' +
+      '<button class="btn" data-act="play-again">Play again (same setup)</button>' +
+      '<button class="btn secondary" data-act="new">New setup</button>' +
+      '<button class="btn ghost" data-act="home">Home</button>'
+    );
+  }
+
+  // ---- Narrator mode (physical cards): app just calls the night order + a day timer ----
+  function renderNarrator() {
+    if (!ui.flow || ui.flow.kind !== 'narrator') {
+      ui.flow = { kind: 'narrator', lines: E.narrationForRoleSet(G.config.roleSet), idx: 0, stage: 'script' };
+    }
+    var f = ui.flow;
+    if (f.stage === 'script') {
+      var line = f.lines[f.idx];
+      var isLast = f.idx >= f.lines.length - 1;
+      return screen(true,
+        '<p class="muted">Narrator — read aloud</p>' +
+        '<div class="script-line ' + (line.kind === 'all' ? 'all' : '') + '" style="font-size:22px">' + esc(line.text) + '</div>' +
+        '<div class="row"><button class="btn secondary" data-act="narr-prev" ' + (f.idx === 0 ? 'disabled' : '') + '>Back</button>' +
+        '<button class="btn" data-act="narr-next">' + (isLast ? 'Go to discussion' : 'Next') + '</button></div>' +
+        '<p class="footer-note">' + (f.idx + 1) + ' / ' + f.lines.length + '</p>'
+      );
+    }
+    if (f.stage === 'day') {
+      var timer = G.config.dayTimerSeconds ? '<div class="timer">' + fmt(ui.timerLeft == null ? (ui.timerLeft = G.config.dayTimerSeconds) : ui.timerLeft) + '</div>' : '';
+      return screen(true,
+        '<h1>Discuss</h1><p class="muted">Talk it out, then vote together — point on three.</p>' + timer +
+        '<button class="btn" data-act="narr-vote">Time to vote</button>'
+      );
+    }
+    return screen(true,
+      '<h1>Vote!</h1><p class="muted">On the count of three, everyone points. Most votes is eliminated (ties: all tied are eliminated). Reveal cards and work out who won.</p>' +
+      '<button class="btn" data-act="home">Done</button>'
+    );
+  }
+
+  // =========================================================================
+  // Shared screen helpers
+  // =========================================================================
+  function screen(center, body) { return '<div class="screen' + (center ? ' center' : '') + '">' + body + '</div>'; }
+  function gateScreen(who, hint, btnLabel, act) {
+    return '<div class="screen"><div class="gate">' +
+      '<p class="muted">Pass the phone to</p>' +
+      '<div class="who">' + esc(who) + '</div>' +
+      '<p class="hint">' + esc(hint) + '</p>' +
+      '<button class="btn" data-act="' + act + '">' + btnLabel + '</button>' +
+      '</div></div>';
+  }
+  function range(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
+  function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
+
+  // =========================================================================
+  // Event binding
+  // =========================================================================
+  function bind() {
+    S.resume();
+    [].forEach.call(app.querySelectorAll('[data-act]'), function (el) {
+      el.addEventListener('click', function () { S.play('tap'); onAct(el.getAttribute('data-act')); });
+    });
+    // setup interactions
+    [].forEach.call(app.querySelectorAll('[data-name]'), function (el) {
+      el.addEventListener('input', function () { draft.playerNames[+el.getAttribute('data-name')] = el.value; });
+    });
+    [].forEach.call(app.querySelectorAll('[data-mode]'), function (el) {
+      el.addEventListener('click', function () { draft.mode = el.getAttribute('data-mode'); render(); });
+    });
+    [].forEach.call(app.querySelectorAll('[data-role-plus]'), function (el) {
+      el.addEventListener('click', function () { draft.roleSet.push(el.getAttribute('data-role-plus')); render(); });
+    });
+    [].forEach.call(app.querySelectorAll('[data-role-minus]'), function (el) {
+      el.addEventListener('click', function () { var id = el.getAttribute('data-role-minus'); var i = draft.roleSet.indexOf(id); if (i !== -1) draft.roleSet.splice(i, 1); render(); });
+    });
+    [].forEach.call(app.querySelectorAll('[data-opt]'), function (el) {
+      el.addEventListener('click', function () { var k = el.getAttribute('data-opt'); draft.options[k] = !draft.options[k]; render(); });
+    });
+    // night/vote interactions
+    [].forEach.call(app.querySelectorAll('[data-choice]'), function (el) {
+      el.addEventListener('click', function () { ui.inputs[el.getAttribute('data-choice')] = el.getAttribute('data-val'); render(); });
+    });
+    [].forEach.call(app.querySelectorAll('[data-pick]'), function (el) {
+      el.addEventListener('click', function () {
+        var seat = el.getAttribute('data-seat'); ui.inputs[el.getAttribute('data-pick')] = (seat === 'null' ? null : +seat); render();
+      });
+    });
+    [].forEach.call(app.querySelectorAll('[data-center]'), function (el) {
+      el.addEventListener('click', function () {
+        var id = el.getAttribute('data-center'), idx = +el.getAttribute('data-idx'), count = +el.getAttribute('data-count');
+        var arr = ui.inputs[id] || []; var at = arr.indexOf(idx);
+        if (at !== -1) arr.splice(at, 1); else { if (arr.length >= count) arr.shift(); arr.push(idx); }
+        ui.inputs[id] = arr; render();
+      });
+    });
+    [].forEach.call(app.querySelectorAll('[data-vote]'), function (el) {
+      el.addEventListener('click', function () {
+        var seat = +el.getAttribute('data-vote');
+        E.castVote(G, ui.flow.humans[ui.flow.idx], seat);
+        S.play('vote'); ui.flow.idx++; ui.flow.stage = 'gate'; save(); render();
+      });
+    });
+  }
+
+  // Stepper bounds for player count.
+  function clampPc(pc) { return Math.max(3, Math.min(20, pc)); }
+
+  function onAct(a) {
+    switch (a) {
+      case 'home': view = 'home'; ui = {}; render(); break;
+      case 'help': view = 'help'; render(); break;
+      case 'new': draft = newDraft(draft ? draft.playerCount : 5); view = 'setup'; render(); break;
+      case 'resume': { var s = loadSaved(); G = s.G; ui = {}; view = 'play'; render(); break; }
+
+      // setup steppers
+      case 'pc+': setPc(draft.playerCount + 1); break;
+      case 'pc-': setPc(draft.playerCount - 1); break;
+      case 'bot+': setBots((draft.botCount || 0) + 1); break;
+      case 'bot-': setBots((draft.botCount || 0) - 1); break;
+      case 't+': draft.dayTimerSeconds = Math.min(600, (draft.dayTimerSeconds || 0) + 30); render(); break;
+      case 't-': draft.dayTimerSeconds = Math.max(0, (draft.dayTimerSeconds || 0) - 30); render(); break;
+      case 'tt+': draft.turnTimerSeconds = Math.min(180, (draft.turnTimerSeconds || 0) + 15); render(); break;
+      case 'tt-': draft.turnTimerSeconds = Math.max(0, (draft.turnTimerSeconds || 0) - 15); render(); break;
+      case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre; render(); break; }
+      case 'start': startGame(); break;
+
+      // reveal
+      case 'reveal-show': ui.flow.stage = 'show'; S.play('reveal'); render(); break;
+      case 'reveal-next': ui.flow.idx++; ui.flow.stage = 'gate'; S.play('pass'); render(); break;
+
+      // night
+      case 'night-open': {
+        var entry = ui.flow.plan[ui.flow.idx];
+        if (entry.kind === 'decoy') { ui.flow.stage = 'decoy'; }
+        else { ui.curSelf = E.getStep(G).seat; ui.inputs = {}; ui.flow.stage = 'act'; }
+        render(); break;
+      }
+      case 'act-confirm': {
+        try {
+          var facts = E.submitStep(G, ui.inputs);
+          ui.flow.facts = facts; ui.flow.stage = 'result'; S.play('reveal'); save(); render();
+        } catch (e) { alert(e.message); }
+        break;
+      }
+      case 'night-next': ui.flow.idx++; ui.flow.stage = 'gate'; S.play('pass'); render(); break;
+
+      // day
+      case 'to-vote': E.beginVote(G); ui.timerLeft = null; stopTimer(); ui.flow = null; save(); render(); break;
+      case 'recheck': openRecheck(); break;
+
+      // vote-open
+      case 'vote-open': ui.flow.stage = 'pick'; render(); break;
+
+      // end
+      case 'play-again': playAgain(); break;
+
+      // narrator
+      case 'narr-next': narrNext(); break;
+      case 'narr-prev': ui.flow.idx = Math.max(0, ui.flow.idx - 1); render(); break;
+      case 'narr-vote': ui.flow.stage = 'vote'; render(); break;
+    }
+  }
+
+  function setPc(pc) {
+    pc = clampPc(pc);
+    draft.playerCount = pc;
+    // resize names
+    while (draft.playerNames.length < pc) draft.playerNames.push('Player ' + (draft.playerNames.length + 1));
+    draft.playerNames = draft.playerNames.slice(0, pc);
+    // reload recommended set for the new count if available, else keep (validation will guide)
+    var pre = E.presetRoleSet(pc); if (pre) draft.roleSet = pre;
+    if (draft.botCount > pc - 1) draft.botCount = pc - 1;
+    applyBotNames(draft);
+    render();
+  }
+  function setBots(n) {
+    draft.botCount = Math.max(0, Math.min(draft.playerCount - 1, n));
+    applyBotNames(draft);
+    render();
+  }
+
+  function startGame() {
+    var v = E.validateConfig(draft);
+    if (!v.ok) { render(); return; }
+    var seed = ((Date.now() >>> 0) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    G = E.newGame(draft, seed);
+    ui = {};
+    view = 'play';
+    if (G.mode === 'narrator') { /* narrator uses the role set, not the deal */ }
+    save(); render();
+    if (G.config.dayTimerSeconds) {/* timer starts when day begins */}
+  }
+
+  function playAgain() {
+    var seed = ((Date.now() >>> 0) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    G = E.newGame(G.config, seed); ui = {}; save(); render();
+  }
+
+  // Re-check own role during the day — gated per player, reveals only to that player.
+  function openRecheck() {
+    ui.recheck = { idx: 0, stage: 'gate' };
+    view = 'play';
+    // simple inline flow using prompt-free screens
+    renderRecheck();
+  }
+  function renderRecheck() {
+    // minimal: reuse the reveal pattern but from privateReveal (dealt role + what they learned)
+    var rc = ui.recheck;
+    if (rc.idx >= G.players.length) { ui.recheck = null; render(); return; }
+    var p = G.players[rc.idx];
+    if (rc.stage === 'gate') {
+      app.innerHTML = gateScreen(p.name, 'Only ' + esc(p.name) + ' should look.', 'I am ' + esc(p.name), 'rc-show');
+      bindRecheck(); return;
+    }
+    var pr = E.privateReveal(G, p.seat);
+    var learned = pr.knowledge.map(factText).filter(Boolean);
+    var extras = '';
+    if (pr.mark && pr.mark !== 'clarity') {
+      var md = (DEF.markDesc && DEF.markDesc[pr.mark]) || pr.mark;
+      extras += '<div class="panel">Your Mark: <b>' + esc(md) + '</b></div>';
+    }
+    (pr.tokens || []).forEach(function (t) {
+      if (t.indexOf('artifact:') === 0) {
+        var key = t.split(':')[1], desc = (DEF.artifactDesc && DEF.artifactDesc[key]) || 'an Artifact';
+        extras += '<div class="panel">Your Artifact: ' + esc(desc) + '</div>';
+      }
+    });
+    app.innerHTML = screen(true,
+      '<p class="muted">' + esc(p.name) + ', you started as</p>' +
+      '<div class="big-role">' + esc(pr.dealtRoleName) + '</div>' + extras +
+      (learned.length ? '<div class="divider"></div><p class="muted">What you saw in the night:</p>' + learned.map(function (l) { return '<div class="panel">' + esc(l) + '</div>'; }).join('') : '') +
+      '<div class="divider"></div><button class="btn" data-act="rc-next">Hide &amp; pass on</button>'
+    );
+    bindRecheck();
+  }
+  function bindRecheck() {
+    [].forEach.call(app.querySelectorAll('[data-act]'), function (el) {
+      el.addEventListener('click', function () {
+        var a = el.getAttribute('data-act');
+        if (a === 'rc-show') { ui.recheck.stage = 'show'; renderRecheck(); }
+        else if (a === 'rc-next') { ui.recheck.idx++; ui.recheck.stage = 'gate'; renderRecheck(); }
+        else onAct(a);
+      });
+    });
+  }
+
+  function narrNext() {
+    var f = ui.flow;
+    if (f.idx >= f.lines.length - 1) { f.stage = 'day'; ui.timerLeft = null; }
+    else f.idx++;
+    render();
+    if (f.stage === 'day' && G.config.dayTimerSeconds) startTimer();
+  }
+
+  // ---- day timer ----
+  var timerHandle = null;
+  function startTimer() {
+    stopTimer();
+    timerHandle = setInterval(function () {
+      if (ui.timerLeft == null) ui.timerLeft = G.config.dayTimerSeconds;
+      ui.timerLeft--;
+      if (ui.timerLeft <= 0) { ui.timerLeft = 0; stopTimer(); S.play('day'); }
+      else if (ui.timerLeft <= 5) S.play('tick');
+      var el = app.querySelector('.timer'); if (el) el.textContent = fmt(ui.timerLeft);
+    }, 1000);
+  }
+  function stopTimer() { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } }
+
+  // ---- per-turn role timer (each player's private reveal / night action is timed) ----
+  var turnHandle = null;
+  function timerBadge() {
+    var secs = (G && G.config && G.config.turnTimerSeconds) || 0;
+    if (!secs) return '';
+    return '<div class="small muted" style="text-align:right;font-weight:800" id="turnTimer">⏳ ' + secs + 's</div>';
+  }
+  function turnTimeoutAction() {
+    if (view !== 'play' || !G || !ui.flow) return null;
+    var f = ui.flow;
+    if (f.kind === 'reveal' && f.stage === 'show') return function () { onAct('reveal-next'); };
+    if (f.kind === 'night') {
+      if (f.stage === 'decoy' || f.stage === 'result') return function () { onAct('night-next'); };
+      if (f.stage === 'act') return function () {
+        var step = E.getStep(G);
+        if (!step || step.feared) { onAct('act-confirm'); return; }
+        try { ui.inputs = E.botInputsForCurrent(G); } catch (e) { ui.inputs = {}; }
+        onAct('act-confirm');
+      };
+    }
+    return null;
+  }
+  function manageTurnTimer() {
+    stopTurnTimer();
+    var secs = (G && G.config && G.config.turnTimerSeconds) || 0;
+    if (!secs) return;
+    var onExpire = turnTimeoutAction();
+    if (!onExpire) return;
+    var left = secs;
+    turnHandle = setInterval(function () {
+      left--;
+      var el = app.querySelector('#turnTimer'); if (el) el.textContent = '⏳ ' + Math.max(0, left) + 's';
+      if (left <= 3 && left > 0) S.play('tick');
+      if (left <= 0) { stopTurnTimer(); onExpire(); }
+    }, 1000);
+  }
+  function stopTurnTimer() { if (turnHandle) { clearInterval(turnHandle); turnHandle = null; } }
+
+  // Start the day timer when entering the day screen (digital mode).
+  var _origRenderDay = renderDay;
+  renderDay = function () { var h = _origRenderDay(); if (G.config.dayTimerSeconds && !timerHandle) setTimeout(startTimer, 0); return h; };
+
+  // Boot
+  render();
+})();
+
+  </script>
+  <script>
+/* ui-glue.js (Alien) — per-game copy for the shared UI. */
+window.PARTY_META = {
+  title: 'Alien',
+  tagline: 'Something landed. Their tech rewrites the rules every game. Find the visitors before they make the village their own.'
+};
+
+  </script>
+</body>
+</html>
