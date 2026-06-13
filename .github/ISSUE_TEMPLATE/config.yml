@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security / information-leak report
+    url: https://github.com/your-org/party-deck/security/advisories/new
+    about: Please report exploitable vulnerabilities privately (see SECURITY.md), not as a public issue.

@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (engines + UI smoke, no-leak assertions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Tests are dependency-free pure Node (relative requires), so no install is needed.
+      - name: Run all tests
+        run: node scripts/run-tests.js
+
+  build-html:
+    name: Compose app.html for every app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Regenerate icons, app.json and app.html
+        run: |
+          for app in apps/*/; do
+            if [ -f "$app/build.js" ]; then
+              echo "== $app =="
+              ( cd "$app" \
+                && (node scripts/make-icon.js || true) \
+                && node ../../packages/core/build/make-app-json.js \
+                && node build.js )
+            fi
+          done

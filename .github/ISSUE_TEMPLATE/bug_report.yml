@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a problem (including any hidden-info leak)
+labels: [bug]
+body:
+  - type: dropdown
+    id: app
+    attributes:
+      label: Which game?
+      options: [Imposter, Out of the Loop, Spy Hunt, Werewolf, Daybreak, Vampire, Alien, Shared core, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Is this an information leak?
+      description: A shared screen revealing a role / secret word / location / who the outsider is, is high severity.
+      options: ['No', 'Yes — a shared screen revealed hidden info']
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Players / settings used
+        2. Screen / phase
+        3. Action taken
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Device / OS / app version
+      placeholder: e.g. Pixel 7, Android 14, v1.0.0

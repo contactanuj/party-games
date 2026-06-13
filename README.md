@@ -1,56 +1,88 @@
-# Party Games — social-deduction night/vote games
+# Party Deck
 
-A monorepo of **four separate Android games** (each its own APK / store product) that share one
-engineering foundation: **Werewolf, Daybreak, Vampire, Alien**. Each is a single-device
-**pass-and-play** social-deduction game — everyone is secretly dealt a role, some roles act
-during a hidden **night**, then the table **discusses and votes**, and team-based **win
-resolution** decides who wins.
+A monorepo of **standalone pass-and-play party games** — each its own Android app (one APK / store
+product) — that share one engineering foundation. Everything runs **offline on a single device**
+that players pass around: the phone privately shows each player their secret, hides it, and resolves
+the whole game.
 
-Built the same way as the other games in this workspace: an Expo + `react-native-webview`
-shell loads one inlined `assets/app.html` produced by a `build.js` step from a **pure,
-deterministic, unit-tested engine** + DOM UI.
+Two game families share `@partydeck/core`:
 
-## Layout
+| Family | Engine | Loop | Games |
+| --- | --- | --- | --- |
+| **Night / vote** | `core-engine.js` | deal hidden roles → secret night actions → discuss → vote → team win | **Werewolf, Daybreak, Vampire, Alien** |
+| **Secret word / find-the-outsider** | `word-engine.js` | private reveal → clues / questions / timed Q&A → vote → caught? → guess → score | **Imposter, Out of the Loop, Spy Hunt** |
 
-```
-packages/core            @partydeck/core — the shared foundation
-  src/engine/core-engine.js   pure rules engine (night scheduler, vote + multi-team win, validate, bots)
-  src/ui/ui-core.js           shared pass-and-play UI (handoff gating, no-leak boundary, both play modes)
-  src/ui/sound.js             synthesized SFX
-  src/css/base.css            themed base (games override CSS tokens only)
-  build/{compose,guards,make-app-json,gen-icons}.js   build + asset tooling
-  tests/                      framework tests + shared DOM stub
-apps/{werewolf,daybreak,vampire,alien}    one Expo app (= one APK) each
-  src/{roles,presets,theme,ui-glue}       the only files authored per game
-  tests/                                  per-game engine + UI smoke tests
-```
+Each app is an Expo + `react-native-webview` shell that loads one inlined `assets/app.html`,
+produced by a `build.js` step from a **pure, deterministic, unit-tested engine** + a DOM UI.
+
+## The word-deduction games
+
+- **Imposter** — everyone gets the secret word; one player doesn't. Give a one-word clue, find the
+  fake. *Classic*, *Beginner* (the Imposter gets the category) and *Undercover* (the Imposter gets a
+  close-but-different word and isn't told they're the odd one out).
+- **Out of the Loop** — the app asks questions about a secret word; everyone answers in turn. The
+  Outsider knows only the category and must blend in. *Standard / Hard / Blind Outsider.*
+- **Spy Hunt** — everyone shares a location and a role there; the Spy knows neither. Question each
+  other on a timer; accuse (everyone must agree) or let the Spy stop the clock to name the location.
+  *Standard / Quick / Two Spies.* (The "Spyfall" name is a third-party trademark; this is an
+  original-content implementation — see [NOTICE.md](NOTICE.md).)
 
 ## Design tenets
 
-- **Pure, deterministic engine.** A single seeded PRNG on `state.rngState`; same
-  `(config, seed, inputs)` ⇒ byte-identical state. JSON-serializable. Unit-tested by simulating
-  full games (fuzz) + a win-condition matrix + deterministic-replay + JSON round-trip.
-- **Maximum configurable, but validated.** `validateConfig` returns `{errors, warnings}` —
-  errors block starting an illegal/unwinnable game; warnings flag off-spec-but-playable setups.
-- **Information boundary (no leaks).** Shared/observable screens render only from
-  `publicView(state)` and never show a role/team/card or any role-coded color or icon. Private
-  info appears only behind a per-player handoff gate; during the night the device is handed to
-  **every** player (real actors + indistinguishable decoys) so observers can't tell who has a
-  role. A UI smoke test asserts no role name leaks onto any shared screen.
-- **Two play modes per app.** Digital pass-and-play (the phone holds the cards and resolves
-  everything) **and** narrator mode (physical cards; the app calls the night order + a timer).
-- **Bots.** Any number of seats can be computer players (fill the table / solo practice) — they
-  act legally at night (via the engine PRNG) and vote from their own private knowledge.
+- **Pure, deterministic engines.** A single seeded PRNG on `state.rngState`; same
+  `(config, seed, inputs)` ⇒ byte-identical state. JSON-serializable. Bots use the same PRNG, so a
+  whole match (humans + bots) replays exactly.
+- **Information boundary (no leaks).** Shared/observable screens render **only** from the engine's
+  public view and never show a role, secret, location, or any role-coded colour/icon/ordering. The
+  secret is shown only behind a per-player handoff gate that is **shape-identical** for every role,
+  auto-hides on a countdown, and can be re-checked (gated). UI smoke tests assert this.
+- **Maximum configurable, but guarded.** Every practical variation is a config field;
+  `validateConfig` returns `{errors, warnings}`. Errors make an illegal/unwinnable setup impossible
+  to start (the UI disables the proceed button); warnings flag off-spec-but-playable setups.
+- **Offline bots.** Any seat can be a computer player to fill the table. These are talking games, so
+  bots fill seats and vote but can't truly bluff — the lobby says so.
+- **Generated assets.** `app.html`, `app.json`, `icon.png` and `splash.png` are all generated from
+  source; only the source is edited.
+
+## Layout
+
+```text
+packages/core                       @partydeck/core — the shared foundation
+  src/engine/core-engine.js         night/vote/reveal engine (Werewolf family)
+  src/engine/word-engine.js         secret-word / find-the-outsider engine
+  src/ui/core-ui.js, word-ui.js     shared pass-and-play UIs (one per family)
+  src/ui/sound.js                   synthesized SFX
+  src/css/base.css                  themed base (games override CSS tokens only)
+  build/{compose,guards,make-app-json,png-canvas}.js   build + asset tooling
+  tests/                            framework tests + DOM stubs
+apps/<game>                         one Expo app (= one APK) each
+scripts/run-tests.js                dependency-free runner for every test
+```
 
 ## Develop
 
 ```bash
-npm install                     # one install for the whole workspace
-npm test                        # core + all games (dependency-free Node tests)
-npm run build:html -w werewolf  # regenerate apps/werewolf/assets/app.html
-npm start -w werewolf           # gen config + build + expo start
-npm run build:android -w werewolf   # EAS preview APK
+# Run every engine + UI smoke test (no install needed — pure Node):
+node scripts/run-tests.js
+
+# Per app (example: imposter):
+cd apps/imposter
+node scripts/make-icon.js                          # icon.png + splash.png
+node ../../packages/core/build/make-app-json.js    # app.json
+node build.js                                       # assets/app.html
+
+# With Expo installed (npm install at the repo root once):
+npm start -w imposter                                # gen config + build + expo start
+npm run build:android -w imposter                    # EAS preview APK
 ```
 
-See `apps/werewolf` for the reference implementation; Daybreak / Vampire / Vampire / Alien
-follow the same shape and reuse `@partydeck/core`.
+## Build APKs in CI
+
+The `EAS Build (Android)` GitHub Action builds any app on demand. Add your Expo access token as a
+repository secret named **`EXPO_TOKEN`** (Settings → Secrets and variables → Actions), then run the
+workflow and pick the app. The token is never stored in the repo.
+
+## License
+
+[MIT](LICENSE). Game *content* is original; see [NOTICE.md](NOTICE.md) for the originality and
+trademark notice. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).

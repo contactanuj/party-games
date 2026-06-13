@@ -4,6 +4,22 @@ dist/
 web-build/
 *.log
 .DS_Store
+Thumbs.db
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+
+# Expo / EAS local artifacts
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+
+# Never commit secrets (Expo access tokens, etc.)
+.env
+.env.*
 
 # app.html is always regenerated from src by build.js — never the source of truth.
 apps/*/assets/app.html

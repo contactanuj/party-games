@@ -1,0 +1,54 @@
+name: EAS Build (Android)
+
+# Build a signed APK/AAB for one app on demand.
+#
+# Setup (once): create an Expo access token at https://expo.dev/settings/access-tokens and add it
+# as a repository secret named EXPO_TOKEN  (Settings -> Secrets and variables -> Actions).
+# The token is read from that secret at runtime and is NEVER stored in the repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App folder under apps/ (e.g. imposter, outoftheloop, spyhunt, werewolf)'
+        required: true
+        default: 'imposter'
+      profile:
+        description: 'EAS build profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options: [preview, production]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+      - name: Verify EXPO_TOKEN is configured
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+      - name: Install app dependencies
+        working-directory: apps/${{ github.event.inputs.app }}
+        run: npm install
+      - name: Generate config, icon and app.html
+        working-directory: apps/${{ github.event.inputs.app }}
+        run: |
+          node ../../packages/core/build/make-app-json.js
+          node scripts/make-icon.js || true
+          node build.js
+      - name: EAS build
+        working-directory: apps/${{ github.event.inputs.app }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile ${{ github.event.inputs.profile }} --non-interactive

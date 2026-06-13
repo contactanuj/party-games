@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest a game, variant, content pack, or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: A new game, a rules variant, a content pack, a UX improvement…
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is it useful / how would it play?
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Fit with the project
+      options:
+        - label: It works offline, single-device, pass-and-play
+        - label: It never requires showing hidden info on a shared screen
