@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: app to build (werewolf|daybreak|vampire|alien|all)
+        description: app to build (werewolf|daybreak|vampire|alien|imposter|outoftheloop|spyhunt|all)
         default: all
       profile:
         description: eas profile (preview=apk, production=aab)
@@ -27,10 +27,13 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            werewolf: ['apps/werewolf/**', 'packages/core/**']
-            daybreak: ['apps/daybreak/**', 'packages/core/**']
-            vampire:  ['apps/vampire/**',  'packages/core/**']
-            alien:    ['apps/alien/**',    'packages/core/**']
+            werewolf:     ['apps/werewolf/**',     'packages/core/**']
+            daybreak:     ['apps/daybreak/**',     'packages/core/**']
+            vampire:      ['apps/vampire/**',      'packages/core/**']
+            alien:        ['apps/alien/**',        'packages/core/**']
+            imposter:     ['apps/imposter/**',     'packages/core/**']
+            outoftheloop: ['apps/outoftheloop/**', 'packages/core/**']
+            spyhunt:      ['apps/spyhunt/**',      'packages/core/**']
       - id: decide
         shell: bash
         run: |
@@ -40,7 +43,7 @@ jobs:
           if [ -n "$DISPATCH" ] && [ "$DISPATCH" != "all" ]; then echo "apps=[\"$DISPATCH\"]" >> "$GITHUB_OUTPUT"; exit 0; fi
           if echo "$GITHUB_REF" | grep -q '^refs/tags/'; then echo "apps=[\"$TAGAPP\"]" >> "$GITHUB_OUTPUT"; exit 0; fi
           APPS=()
-          for a in werewolf daybreak vampire alien; do
+          for a in werewolf daybreak vampire alien imposter outoftheloop spyhunt; do
             if [ "$(eval echo \${{ steps.filter.outputs.$a }} 2>/dev/null)" = "true" ]; then APPS+=("\"$a\""); fi
           done
           if [ ${#APPS[@]} -eq 0 ]; then echo "apps=[]" >> "$GITHUB_OUTPUT"; else printf 'apps=[%s]\n' "$(IFS=,; echo "${APPS[*]}")" >> "$GITHUB_OUTPUT"; fi

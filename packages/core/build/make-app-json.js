@@ -38,6 +38,17 @@ function generate(appDir) {
   expo.ios = expo.ios || {};
   expo.ios.bundleIdentifier = id.package;
 
+  // EAS project link (optional but required for `eas build`). Run `eas init` once for the app,
+  // then put the resulting `owner` + project id in identity.json as { "owner": "...",
+  // "easProjectId": "..." } so the generated app.json is build-ready and survives regeneration.
+  if (id.owner) expo.owner = id.owner;
+  if (id.easProjectId) {
+    expo.extra = expo.extra || {};
+    expo.extra.eas = { projectId: id.easProjectId };
+    expo.updates = expo.updates || {};
+    if (!expo.updates.url) expo.updates.url = 'https://u.expo.dev/' + id.easProjectId;
+  }
+
   var out = path.join(appDir, 'app.json');
   fs.writeFileSync(out, JSON.stringify(tmpl, null, 2) + '\n', 'utf8');
   return out;
