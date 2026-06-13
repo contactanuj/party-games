@@ -32,18 +32,15 @@
       "bundleIdentifier": "com.partydeck.werewolf",
       "supportsTablet": false
     },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "allowFileAccessFromFileURLs": true,
-          "allowUniversalAccessFromFileURLs": true
-        }
-      ]
-    ],
     "androidNavigationBar": {
       "backgroundColor": "#0e1117",
       "barStyle": "light-content"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "229a7e6b-76ed-4237-9734-6146f4907bb0"
+      }
+    },
+    "owner": "snyperdrydan"
   }
 }

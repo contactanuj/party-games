@@ -32,18 +32,15 @@
       "bundleIdentifier": "com.partydeck.vampire",
       "supportsTablet": false
     },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "allowFileAccessFromFileURLs": true,
-          "allowUniversalAccessFromFileURLs": true
-        }
-      ]
-    ],
     "androidNavigationBar": {
       "backgroundColor": "#120407",
       "barStyle": "light-content"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3520d28c-1d8e-43b5-946c-d948857e2996"
+      }
+    },
+    "owner": "snyperdrydan"
   }
 }

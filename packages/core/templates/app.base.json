@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0f0d0b"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "androidStatusBar": {
       "translucent": false,
       "backgroundColor": "#0f0d0b",
@@ -29,15 +31,6 @@
     "ios": {
       "bundleIdentifier": "com.partydeck.game",
       "supportsTablet": false
-    },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "allowFileAccessFromFileURLs": true,
-          "allowUniversalAccessFromFileURLs": true
-        }
-      ]
-    ]
+    }
   }
 }
