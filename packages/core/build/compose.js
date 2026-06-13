@@ -64,6 +64,13 @@ function composeAppHtml(opts) {
 
   var out = path.join(appDir, 'assets', 'app.html');
   fs.writeFileSync(out, html, 'utf8');
+
+  // Also emit the HTML as a plain JS string module the app imports directly. This is what the
+  // app actually loads — it sidesteps Metro asset-extension resolution (which is unreliable on
+  // EAS for a non-standard .html asset) and needs no runtime file read. JSON.stringify produces
+  // a safe, fully-escaped JS string literal.
+  fs.writeFileSync(path.join(appDir, 'assets', 'app-html.js'), 'module.exports = ' + JSON.stringify(html) + ';\n', 'utf8');
+
   return html.length;
 }
 
@@ -116,6 +123,13 @@ function composeWordAppHtml(opts) {
 
   var out = path.join(appDir, 'assets', 'app.html');
   fs.writeFileSync(out, html, 'utf8');
+
+  // Also emit the HTML as a plain JS string module the app imports directly. This is what the
+  // app actually loads — it sidesteps Metro asset-extension resolution (which is unreliable on
+  // EAS for a non-standard .html asset) and needs no runtime file read. JSON.stringify produces
+  // a safe, fully-escaped JS string literal.
+  fs.writeFileSync(path.join(appDir, 'assets', 'app-html.js'), 'module.exports = ' + JSON.stringify(html) + ';\n', 'utf8');
+
   return html.length;
 }
 
