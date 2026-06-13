@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+.DS_Store
+
+# app.html is always regenerated from src by build.js — never the source of truth.
+apps/*/assets/app.html

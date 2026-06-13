@@ -1,0 +1,99 @@
+/* base.css — shared theme. Colors come from CSS custom properties each game overrides in
+ * theme.css (--bg, --panel, --text, --muted, --accent, --danger, --good ...). No game-specific
+ * colors here, and CRUCIALLY no role/team-coded colors that could leak identity on a shared
+ * screen — role coloring is never used in public surfaces. */
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+#app { min-height: 100%; display: flex; flex-direction: column; }
+
+.screen { flex: 1; display: flex; flex-direction: column; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); max-width: 560px; width: 100%; margin: 0 auto; }
+.screen.center { justify-content: center; align-items: center; text-align: center; }
+
+h1 { font-size: 30px; font-weight: 800; letter-spacing: .5px; margin: 0 0 4px; }
+h2 { font-size: 20px; font-weight: 700; margin: 18px 0 8px; }
+h3 { font-size: 16px; font-weight: 700; margin: 12px 0 6px; }
+p { line-height: 1.5; margin: 8px 0; }
+.tagline { color: var(--muted); font-size: 15px; margin: 0 0 24px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.center-text { text-align: center; }
+
+/* Buttons */
+.btn {
+  display: block; width: 100%; padding: 16px 18px; margin: 8px 0; border: none; border-radius: 14px;
+  font-size: 17px; font-weight: 700; color: #fff; background: var(--accent);
+  cursor: pointer; transition: transform .05s ease, filter .15s ease; text-align: center;
+}
+.btn:active { transform: scale(.985); filter: brightness(1.08); }
+.btn.secondary { background: var(--panel); color: var(--text); border: 1px solid rgba(255,255,255,.12); }
+.btn.ghost { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
+.btn.danger { background: var(--danger); }
+.btn.good { background: var(--good); }
+.btn.small { padding: 10px 12px; font-size: 14px; border-radius: 10px; margin: 4px 0; }
+.btn:disabled { opacity: .4; pointer-events: none; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.spacer { flex: 1; }
+.stack > * { margin-bottom: 10px; }
+
+/* Panels / cards */
+.panel { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px; margin: 10px 0; }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.08); font-size: 13px; margin: 3px; }
+.divider { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
+
+/* Inputs */
+input[type=text], input[type=number], select {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04); color: var(--text); font-size: 16px;
+}
+label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 14px; font-weight: 600; }
+
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stepper .val { font-size: 22px; font-weight: 800; min-width: 48px; text-align: center; }
+.stepbtn { width: 48px; height: 48px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: var(--panel); color: var(--text); font-size: 24px; font-weight: 700; }
+
+.toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.toggle .sw { width: 52px; height: 30px; border-radius: 999px; background: rgba(255,255,255,.14); position: relative; transition: background .15s; flex: none; }
+.toggle .sw.on { background: var(--good); }
+.toggle .sw .knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .15s; }
+.toggle .sw.on .knob { left: 25px; }
+
+/* Validation */
+.err { background: rgba(255,80,80,.12); border: 1px solid var(--danger); color: #ffd9d9; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
+.warn { background: rgba(240,190,70,.10); border: 1px solid rgba(240,190,70,.5); color: #ffe9b8; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
+
+/* Handoff gate — the secrecy screen. Deliberately neutral; reveals nothing. */
+.gate { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; }
+.gate .who { font-size: 28px; font-weight: 800; }
+.gate .hint { color: var(--muted); max-width: 320px; }
+
+/* Player-pick grid */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.choice { padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: var(--panel); text-align: center; font-weight: 700; cursor: pointer; }
+.choice.sel { border-color: var(--accent); background: rgba(255,255,255,.06); box-shadow: 0 0 0 2px var(--accent) inset; }
+.choice.dead { opacity: .45; }
+
+/* Reveal / results */
+.big-role { font-size: 34px; font-weight: 900; margin: 6px 0; }
+.result-win { font-size: 26px; font-weight: 900; }
+.reveal-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.reveal-row .nm { font-weight: 700; }
+.dead-tag { color: var(--danger); font-weight: 700; font-size: 13px; }
+
+/* Timer */
+.timer { font-size: 44px; font-weight: 900; text-align: center; margin: 10px 0; }
+
+/* Narrator script */
+.script-line { padding: 14px 16px; border-radius: 12px; background: var(--panel); margin: 8px 0; font-size: 17px; line-height: 1.4; }
+.script-line.all { background: rgba(255,255,255,.04); font-style: italic; }
+
+.footer-note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 14px; }

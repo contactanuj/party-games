@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Party Game",
+    "slug": "party-game",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0f0d0b",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0d0b"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.partydeck.game",
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0f0d0b"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.partydeck.game",
+      "supportsTablet": false
+    },
+    "plugins": [
+      [
+        "react-native-webview",
+        {
+          "allowFileAccessFromFileURLs": true,
+          "allowUniversalAccessFromFileURLs": true
+        }
+      ]
+    ]
+  }
+}

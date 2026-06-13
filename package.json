@@ -1,0 +1,19 @@
+{
+  "name": "party-games",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Monorepo of standalone social-deduction party games (Werewolf, Daybreak, Vampire, Alien) sharing one engine.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "test:core": "npm test -w @partydeck/core",
+    "build:all": "npm run build:html --workspaces --if-present",
+    "gen:config": "npm run gen:config --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

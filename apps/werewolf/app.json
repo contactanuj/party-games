@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Werewolf",
+    "slug": "werewolf",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0e1117",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0e1117"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.partydeck.werewolf",
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0e1117"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.partydeck.werewolf",
+      "supportsTablet": false
+    },
+    "plugins": [
+      [
+        "react-native-webview",
+        {
+          "allowFileAccessFromFileURLs": true,
+          "allowUniversalAccessFromFileURLs": true
+        }
+      ]
+    ]
+  }
+}

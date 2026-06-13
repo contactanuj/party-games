@@ -1,0 +1,15 @@
+{
+  "name": "@partydeck/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared, pure, deterministic engine + UI primitives + build tooling for the party-games family.",
+  "exports": {
+    "./engine/*": "./src/engine/*.js",
+    "./ui/*": "./src/ui/*.js",
+    "./build/*": "./build/*.js",
+    "./tests/helpers/*": "./tests/helpers/*.js"
+  },
+  "scripts": {
+    "test": "node tests/engine.core.test.js && node tests/ui-core.smoke.test.js"
+  }
+}
