@@ -10,6 +10,6 @@
     "./tests/helpers/*": "./tests/helpers/*.js"
   },
   "scripts": {
-    "test": "node tests/engine.core.test.js && node tests/ui-core.smoke.test.js"
+    "test": "node tests/word-engine.core.test.js"
   }
 }

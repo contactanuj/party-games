@@ -1,0 +1,13 @@
+/* theme.css (Spy Hunt) — warm noir/amber brand. base.css consumes these tokens. NO role-coded
+   colours: nothing here distinguishes Spy from Agent. */
+:root {
+  --bg: #15140f;
+  --panel: #25221a;
+  --text: #f7f3e8;
+  --muted: #b3ab93;
+  --accent: #e0a23a;
+  --danger: #e0556a;
+  --good: #46c98a;
+}
+body { background: radial-gradient(120% 90% at 50% 0%, #221f16 0%, var(--bg) 60%); }
+h1 { background: linear-gradient(90deg, #f3cf86, #e0a23a); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }

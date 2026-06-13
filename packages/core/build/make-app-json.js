@@ -31,6 +31,10 @@ function generate(appDir) {
   expo.android = expo.android || {};
   expo.android.package = id.package;
   expo.android.adaptiveIcon = { foregroundImage: './assets/icon.png', backgroundColor: bg };
+  // Opaque (non-translucent) status bar so Android reserves its space and content never sits
+  // under it. iOS notch is handled in CSS via env(safe-area-inset-top).
+  expo.androidStatusBar = { translucent: false, backgroundColor: bg, barStyle: 'light-content' };
+  expo.androidNavigationBar = { backgroundColor: bg, barStyle: 'light-content' };
   expo.ios = expo.ios || {};
   expo.ios.bundleIdentifier = id.package;
 

@@ -6,8 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import { useEffect, useState } from 'react';
 import identity from './identity.json';
 
-// Shared WebView shell — identical across all games; only the background color (from
-// identity.json) differs. The whole game lives in the inlined assets/app.html.
+// Shared WebView shell — the whole game lives in the inlined assets/app.html.
 export default function App() {
   const [html, setHtml] = useState(null);
   const bg = identity.bgColor || '#0e1117';

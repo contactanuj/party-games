@@ -144,6 +144,7 @@
         questionsPerRound: 3,              // ('questions') how many app questions before the vote
         debatePhase: true,                 // an explicit "discuss now" step before voting
         timerSeconds: def.defaultTimerSeconds || 0, // discussion/play clock (0 = off)
+        revealSeconds: def.revealSeconds == null ? 8 : def.revealSeconds, // auto-hide the secret card after N seconds (0 = manual only). Limits over-the-shoulder peeking — a UI concern, not a rule.
 
         // ---- catching the outsider ----
         accusationMode: def.defaultAccusationMode || 'vote', // 'vote' (one tally) | 'unanimous_anytime' (Spyfall)
@@ -152,6 +153,7 @@
         tieBreaker: 'revote',              // dealer | revote | outsider_escapes
         outsiderGuesses: 1,                // guesses the outsider gets when caught
         guessMode: DEFAULT_GUESS,          // none | free | list | fromTopic
+        caughtCanGuess: def.caughtCanGuessDefault !== false, // a CAUGHT outsider gets a guess (Spyfall: false — the spy's only guess is a voluntary stop)
         allowOutsiderEarlyGuess: !!def.allowOutsiderEarlyGuessDefault, // spy may stop & guess anytime
 
         // ---- scoring (named buckets cover all three games) ----
@@ -232,6 +234,7 @@
       if (c.interaction === 'clues' && !(c.cluesPerPlayer >= 1)) errors.push('Players need at least 1 clue round.');
       if (c.interaction === 'questions' && !(c.questionsPerRound >= 1)) errors.push('There must be at least 1 question per round.');
       if (c.timerSeconds != null && c.timerSeconds < 0) errors.push('The timer cannot be negative.');
+      if (c.revealSeconds != null && c.revealSeconds < 0) errors.push('The reveal time cannot be negative.');
 
       // Catching.
       if (VOTING_MODES.indexOf(c.votingMode) === -1) errors.push('Voting mode must be one of: ' + VOTING_MODES.join(', ') + '.');
@@ -680,7 +683,7 @@
         return concludeRound(state, seat, OUTCOMES.wrong_conviction,
           nameOf(state, seat) + ' is NOT the ' + OUTSIDER.label + '. The ' + outsiderLabel(state.outsiderSeats.length) + ' win!');
       }
-      if (state.config.guessMode === 'none') {
+      if (state.config.guessMode === 'none' || state.config.caughtCanGuess === false) {
         return concludeRound(state, seat, OUTCOMES.caught_failed,
           nameOf(state, seat) + ' IS the ' + OUTSIDER.label + '! Caught.');
       }

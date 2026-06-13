@@ -61,4 +61,5 @@ cv.paint(function (px, py) {
 });
 
 var out = cv.writePng(path.join(__dirname, '..', 'assets', 'icon.png'));
-console.log('Wrote ' + out + ' (1024x1024).');
+cv.writePng(path.join(__dirname, '..', 'assets', 'splash.png')); // splash = emblem on brand bg (resizeMode contain centres it)
+console.log('Wrote ' + out + ' + splash.png (1024x1024).');

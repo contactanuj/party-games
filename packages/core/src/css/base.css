@@ -14,7 +14,15 @@ body {
 }
 #app { min-height: 100%; display: flex; flex-direction: column; }
 
-.screen { flex: 1; display: flex; flex-direction: column; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); max-width: 560px; width: 100%; margin: 0 auto; }
+/* Top padding includes env(safe-area-inset-top) so content never sits under the device status
+   bar / notch (the WebView draws edge-to-edge with viewport-fit=cover). Left/right insets too
+   for landscape/curved screens. */
+.screen { flex: 1; display: flex; flex-direction: column;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-right: calc(18px + env(safe-area-inset-right));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  padding-left: calc(18px + env(safe-area-inset-left));
+  max-width: 560px; width: 100%; margin: 0 auto; }
 .screen.center { justify-content: center; align-items: center; text-align: center; }
 
 h1 { font-size: 30px; font-weight: 800; letter-spacing: .5px; margin: 0 0 4px; }

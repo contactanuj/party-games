@@ -4,5 +4,6 @@
   "package": "com.partydeck.imposter",
   "bgColor": "#14121f",
   "accent": "#7c5cff",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "customIcon": true
 }

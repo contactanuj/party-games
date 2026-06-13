@@ -1,33 +1,35 @@
 {
   "expo": {
-    "name": "Party Game",
-    "slug": "party-game",
+    "name": "Out of the Loop",
+    "slug": "outoftheloop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0f0d0b",
+    "backgroundColor": "#0c1a1c",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f0d0b"
+      "backgroundColor": "#0c1a1c"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "androidStatusBar": {
       "translucent": false,
-      "backgroundColor": "#0f0d0b",
+      "backgroundColor": "#0c1a1c",
       "barStyle": "light-content"
     },
     "android": {
-      "package": "com.partydeck.game",
+      "package": "com.partydeck.outoftheloop",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#0f0d0b"
+        "backgroundColor": "#0c1a1c"
       }
     },
     "ios": {
-      "bundleIdentifier": "com.partydeck.game",
+      "bundleIdentifier": "com.partydeck.outoftheloop",
       "supportsTablet": false
     },
     "plugins": [
@@ -38,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#0c1a1c",
+      "barStyle": "light-content"
+    }
   }
 }

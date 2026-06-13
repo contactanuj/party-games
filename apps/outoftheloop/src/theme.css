@@ -1,0 +1,13 @@
+/* theme.css (Out of the Loop) — teal brand. base.css consumes these tokens. NO role-coded
+   colours: nothing here distinguishes Outsider from In-the-Loop. */
+:root {
+  --bg: #0c1a1c;
+  --panel: #143033;
+  --text: #eafbf8;
+  --muted: #8fb3b0;
+  --accent: #2bb6a8;
+  --danger: #e0556a;
+  --good: #46c98a;
+}
+body { background: radial-gradient(120% 90% at 50% 0%, #11282b 0%, var(--bg) 60%); }
+h1 { background: linear-gradient(90deg, #6fe3d6, #2bb6a8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }

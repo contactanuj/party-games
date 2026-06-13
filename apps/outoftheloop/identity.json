@@ -1,0 +1,9 @@
+{
+  "name": "Out of the Loop",
+  "slug": "outoftheloop",
+  "package": "com.partydeck.outoftheloop",
+  "bgColor": "#0c1a1c",
+  "accent": "#2bb6a8",
+  "version": "1.0.0",
+  "customIcon": true
+}

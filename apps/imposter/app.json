@@ -1,33 +1,35 @@
 {
   "expo": {
-    "name": "Party Game",
-    "slug": "party-game",
+    "name": "Imposter",
+    "slug": "imposter",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0f0d0b",
+    "backgroundColor": "#14121f",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f0d0b"
+      "backgroundColor": "#14121f"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "androidStatusBar": {
       "translucent": false,
-      "backgroundColor": "#0f0d0b",
+      "backgroundColor": "#14121f",
       "barStyle": "light-content"
     },
     "android": {
-      "package": "com.partydeck.game",
+      "package": "com.partydeck.imposter",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#0f0d0b"
+        "backgroundColor": "#14121f"
       }
     },
     "ios": {
-      "bundleIdentifier": "com.partydeck.game",
+      "bundleIdentifier": "com.partydeck.imposter",
       "supportsTablet": false
     },
     "plugins": [
@@ -38,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#14121f",
+      "barStyle": "light-content"
+    }
   }
 }

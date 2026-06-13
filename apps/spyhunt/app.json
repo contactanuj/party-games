@@ -1,33 +1,35 @@
 {
   "expo": {
-    "name": "Party Game",
-    "slug": "party-game",
+    "name": "Spy Hunt",
+    "slug": "spyhunt",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0f0d0b",
+    "backgroundColor": "#15140f",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f0d0b"
+      "backgroundColor": "#15140f"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "androidStatusBar": {
       "translucent": false,
-      "backgroundColor": "#0f0d0b",
+      "backgroundColor": "#15140f",
       "barStyle": "light-content"
     },
     "android": {
-      "package": "com.partydeck.game",
+      "package": "com.partydeck.spyhunt",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#0f0d0b"
+        "backgroundColor": "#15140f"
       }
     },
     "ios": {
-      "bundleIdentifier": "com.partydeck.game",
+      "bundleIdentifier": "com.partydeck.spyhunt",
       "supportsTablet": false
     },
     "plugins": [
@@ -38,6 +40,10 @@
           "allowUniversalAccessFromFileURLs": true
         }
       ]
-    ]
+    ],
+    "androidNavigationBar": {
+      "backgroundColor": "#15140f",
+      "barStyle": "light-content"
+    }
   }
 }

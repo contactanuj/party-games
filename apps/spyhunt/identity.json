@@ -1,0 +1,9 @@
+{
+  "name": "Spy Hunt",
+  "slug": "spyhunt",
+  "package": "com.partydeck.spyhunt",
+  "bgColor": "#15140f",
+  "accent": "#e0a23a",
+  "version": "1.0.0",
+  "customIcon": true
+}

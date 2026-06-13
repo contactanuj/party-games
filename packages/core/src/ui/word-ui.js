@@ -44,6 +44,7 @@
     tablePick: null,
     accuse: { active: false, accused: null, confirmWho: null },
     timer: { remaining: 0, handle: null, running: false },
+    revealTimer: { remaining: 0, handle: null },
     guessText: '',
     notice: ''
   };
@@ -87,6 +88,12 @@
   // ============================================================================
   function render() {
     clear();
+    // Always start a freshly-rendered screen at the (safe-area-padded) top. This keeps the header
+    // clear of the status bar after any action — including when a text input opened the keyboard
+    // and the page had scrolled. Combined with Android's 'resize' keyboard mode, focusing an input
+    // never pushes the UI up under the status bar.
+    try { window.scrollTo(0, 0); } catch (e) {}
+    clearRevealTimer();   // never let a secret-card auto-hide countdown bleed onto another screen
     stopTimerIfLeaving();
     if (UI.recheck.active) return renderRecheck();
     if (UI.screen === 'lobby') return renderLobby();
@@ -171,6 +178,13 @@
   function renderSettings() {
     var s = screen();
     add(s, E('h1', null, 'Settings'));
+    // Validate up-front and surface problems at the TOP (not buried under the form). The proceed
+    // button below is disabled while anything is invalid, so you can never leave Settings with a
+    // configuration that can't start. (Steppers below also cap to the player count, so most
+    // invalid states can't be entered in the first place.)
+    var v = engine.validateConfig(UI.config, LIB);
+    v.errors.forEach(function (e) { add(s, note('err', e)); });
+    v.warnings.forEach(function (w) { add(s, note('warn', w)); });
     var hidden = META.hiddenOptions || [];
     var labels = META.optionLabels || {};
     function show(key) { return hidden.indexOf(key) === -1; }
@@ -189,6 +203,7 @@
     if (c.interaction === 'questions' && show('questionsPerRound')) add(s, intRow(L('questionsPerRound', 'Questions per round'), c.questionsPerRound, 1, 8, function (v) { c.questionsPerRound = v; }));
     if (show('debatePhase')) add(s, toggleRow(L('debatePhase', 'Discussion step before voting'), c.debatePhase, function (v) { c.debatePhase = v; }));
     if (show('timerSeconds')) add(s, selectRow(L('timerSeconds', 'Timer'), c.timerSeconds, [[0, 'Off'], [60, '1 min'], [120, '2 min'], [180, '3 min'], [300, '5 min'], [480, '8 min']], function (v) { c.timerSeconds = v; }));
+    if (show('revealSeconds')) add(s, selectRow(L('revealSeconds', 'Auto-hide the secret card'), c.revealSeconds, [[0, 'Off (tap to hide)'], [5, 'After 5s'], [8, 'After 8s'], [12, 'After 12s'], [20, 'After 20s']], function (v) { c.revealSeconds = v; }));
 
     // Catching
     add(s, E('h2', null, 'Catching the ' + OUT));
@@ -217,12 +232,11 @@
       });
     }
 
-    var v = engine.validateConfig(UI.config, LIB);
-    v.errors.forEach(function (e) { add(s, note('err', e)); });
-    v.warnings.forEach(function (w) { add(s, note('warn', w)); });
-
     add(s, E('div', 'divider'));
-    add(s, btn('Done', '', function () { saveConfig(); UI.screen = 'lobby'; render(); }));
+    var done = btn('Done', '', function () { saveConfig(); UI.screen = 'lobby'; render(); });
+    done.disabled = !v.ok; // can't leave Settings with an unstartable config
+    add(s, done);
+    if (!v.ok) add(s, E('div', 'footer-note', 'Fix the highlighted setting' + (v.errors.length > 1 ? 's' : '') + ' above to continue.'));
     add(s, btn('Reset to defaults', 'ghost', function () { var pc = c.playerCount, nm = c.playerNames.slice(); UI.config = engine.defaultConfig(pc, nm); applyVariant(UI.config, META.defaultVariant); render(); }));
     app.appendChild(s);
   }
@@ -314,8 +328,12 @@
       // SECRET screen — identical chrome for outsider and insider
       add(s, secretCard(engine.revealFor(UI.g, seat)));
       add(s, btn('Hide & pass on', '', function () { UI.reveal.shown = false; UI.reveal.idx++; SND.play('pass'); render(); }));
+      if (UI.config.revealSeconds > 0) add(s, E('div', 'footer-note reveal-countdown', 'Auto-hiding in ' + UI.config.revealSeconds + 's'));
     }
     app.appendChild(s);
+    if (UI.reveal.shown && UI.config.revealSeconds > 0) {
+      startAutoHide(function () { UI.reveal.shown = false; UI.reveal.idx++; SND.play('pass'); render(); });
+    }
   }
   function countHumans(order) { var n = 0; order.forEach(function (st) { if (!engine.isBot(UI.g, st)) n++; }); return n; }
   function countHumansBefore(order, idx) { var n = 0; for (var i = 0; i < idx; i++) if (!engine.isBot(UI.g, order[i])) n++; return n; }
@@ -333,17 +351,19 @@
         add(wrap, E('div', 'big-role', info.location));
         add(wrap, E('div', 'pill', 'Your role: ' + (info.roleAtLocation || '—')));
       }
+    } else if (info.word != null) {
+      // The seat HAS a word. This covers every insider AND the Undercover outsider (who gets a
+      // close word and is NOT told they are the odd one out). The card is byte-identical for both,
+      // so the reveal itself can never betray the role — you must deduce it from the clues.
+      add(wrap, E('div', 'hint', 'Your secret word'));
+      add(wrap, E('div', 'big-role', info.word));
+      add(wrap, E('div', 'hint', 'Give a one-word clue that proves you know it — without handing it to the ' + OUT + '.'));
+      if (info.hint) add(wrap, E('div', 'pill', 'Category: ' + info.hint));
     } else {
-      if (info.isOutsider) {
-        add(wrap, E('div', 'big-role', info.word != null ? info.word : ('You are the ' + OUT)));
-        if (info.word != null) add(wrap, E('div', 'pill', 'You are the ' + OUT)); // Undercover: a word AND the role note (same chrome)
-        add(wrap, E('div', 'hint', info.word != null ? 'You may be the odd one out. Give clues that fit — find out.' : 'You have no word. Listen, then fake a clue that fits.'));
-        if (info.hint) add(wrap, E('div', 'pill', 'Category: ' + info.hint));
-      } else {
-        add(wrap, E('div', 'hint', 'The secret word'));
-        add(wrap, E('div', 'big-role', info.word));
-        add(wrap, E('div', 'hint', 'Give a one-word clue that proves you know it — without handing it to the ' + OUT + '.'));
-      }
+      // The seat has NO word -> it is the outsider (Classic Imposter / Out of the Loop / blind).
+      add(wrap, E('div', 'big-role', 'You are the ' + OUT));
+      add(wrap, E('div', 'hint', 'You have no word. Listen carefully, then give a clue that blends in.'));
+      if (info.hint) add(wrap, E('div', 'pill', 'Category: ' + info.hint));
     }
     if (info.allies && info.allies.length) add(wrap, E('div', 'pill', 'With you: ' + info.allies.join(', ')));
     return wrap;
@@ -353,7 +373,7 @@
   function openRecheck() { UI.recheck = { active: true, seat: null, shown: false }; render(); }
   function renderRecheck() {
     var s = screen(true);
-    add(s, E('h2', null, 'Re-check your word'));
+    add(s, E('h2', null, 'Re-check your secret'));
     if (UI.recheck.seat == null) {
       add(s, E('p', 'muted', 'Tap your own name. Make sure no one else is looking.'));
       var grid = E('div', 'grid');
@@ -375,10 +395,15 @@
     } else {
       add(s, secretCard(engine.revealFor(UI.g, UI.recheck.seat)));
       add(s, btn('Hide', '', function () { UI.recheck.active = false; SND.play('pass'); render(); }));
+      if (UI.config.revealSeconds > 0) add(s, E('div', 'footer-note reveal-countdown', 'Auto-hiding in ' + UI.config.revealSeconds + 's'));
     }
     app.appendChild(s);
+    if (UI.recheck.active && UI.recheck.shown && UI.config.revealSeconds > 0) {
+      startAutoHide(function () { UI.recheck.active = false; SND.play('pass'); render(); });
+    }
   }
-  function recheckBtn() { return btn('Re-check my word', 'ghost', openRecheck); }
+  // Re-check label adapts to the game (word vs location). Always a gated single-player handoff.
+  function recheckBtn() { return btn(GAME.contentModel === 'locationRoles' ? 'Re-check my location & role' : 'Re-check my word', 'ghost', openRecheck); }
 
   // ----------------------------- CLUES interaction (shared turn screen) -----------------------------
   function afterInteractionAutostep() { if (UI.g.phase === 'clues') engine.autoAdvanceClues(UI.g); }
@@ -476,22 +501,28 @@
     add(s, recheckBtn());
     app.appendChild(s);
   }
-  // Mid-round accusation needs everyone-but-accused to agree (engine enforces the outcome).
+  // Mid-round accusation: pick WHO is accusing, then WHO they accuse (so the accuser can never be
+  // the accused, and the +bonus is attributed to the real accuser). Everyone else must then agree.
+  function resetAccuse() { UI.accuse = { active: false, accused: null, confirmWho: null }; }
   function playAccuse(s) {
-    add(s, E('h2', null, 'Accuse a player'));
-    if (UI.accuse.accused == null) {
-      add(s, playerGrid(function (seat) { UI.accuse.accused = seat; render(); }, null));
-      add(s, btn('Cancel', 'ghost', function () { UI.accuse.active = false; render(); }));
+    if (UI.accuse.confirmWho == null) {
+      add(s, E('h2', null, 'Who is accusing?'));
+      add(s, E('p', 'muted center-text', 'Tap the player making the accusation.'));
+      add(s, playerGrid(function (seat) { UI.accuse.confirmWho = seat; render(); }, null));
+      add(s, btn('Cancel', 'ghost', function () { resetAccuse(); render(); }));
+    } else if (UI.accuse.accused == null) {
+      add(s, E('h2', null, engine.nameOf(UI.g, UI.accuse.confirmWho) + ' accuses…'));
+      add(s, playerGrid(function (seat) { UI.accuse.accused = seat; render(); }, UI.accuse.confirmWho)); // can't accuse yourself
+      add(s, btn('Back', 'ghost', function () { UI.accuse.confirmWho = null; render(); }));
     } else {
-      add(s, E('p', 'center-text', 'Accusing ' + engine.nameOf(UI.g, UI.accuse.accused) + '. Everyone else must agree.'));
+      add(s, E('p', 'center-text', engine.nameOf(UI.g, UI.accuse.confirmWho) + ' accuses ' + engine.nameOf(UI.g, UI.accuse.accused) + '. Everyone else must agree.'));
       add(s, btn('Everyone agrees — reveal', 'danger', function () {
-        var accuser = UI.g.dealerSeat; // the table led it; starter records as accuser for bonus
-        engine.callAccusation(UI.g, accuser, UI.accuse.accused, true);
-        UI.accuse.active = false; SND.play('vote'); render();
+        engine.callAccusation(UI.g, UI.accuse.confirmWho, UI.accuse.accused, true);
+        resetAccuse(); SND.play('vote'); render();
       }));
       add(s, btn('No agreement — keep playing', 'ghost', function () {
-        engine.callAccusation(UI.g, UI.g.dealerSeat, UI.accuse.accused, false);
-        UI.accuse.active = false; render();
+        engine.callAccusation(UI.g, UI.accuse.confirmWho, UI.accuse.accused, false);
+        resetAccuse(); render();
       }));
     }
     return s;
@@ -701,12 +732,13 @@
     return grid;
   }
   function showHelp() {
+    clear();
     var s = screen();
     add(s, E('h1', null, 'How to play'));
-    (META.help || []).forEach(function (h) { var p = E('div', 'panel'); add(p, E('p', null, h)); add(s, p); });
+    (META.help || []).forEach(function (h, i) { var p = E('div', 'panel'); add(p, E('div', 'pill', '' + (i + 1))); add(p, E('p', null, h)); add(s, p); });
+    add(s, E('div', 'divider'));
     add(s, btn('Got it', '', function () { render(); }));
     app.appendChild(s);
-    clear(); app.appendChild(s);
   }
   function soundFooter() {
     var row = E('div', 'row');
@@ -736,6 +768,26 @@
   }
   function fmtTime(sec) { var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 
+  // ----------------------------- reveal auto-hide (wink-killer style) -----------------------------
+  // The secret card shows a short countdown and hides itself, so a role is never left on screen for
+  // others to glance at. A player can still hide early, and can always re-check later (gated).
+  function clearRevealTimer() { if (UI.revealTimer.handle) { clearInterval(UI.revealTimer.handle); UI.revealTimer.handle = null; } }
+  function startAutoHide(onExpire) {
+    clearRevealTimer();
+    var secs = UI.config.revealSeconds || 0;
+    if (!secs) return;                       // 0 = manual hide only
+    UI.revealTimer.remaining = secs;
+    UI.revealTimer.handle = setInterval(function () {
+      UI.revealTimer.remaining--;
+      var el = app.querySelector('.reveal-countdown');
+      if (!el) { clearRevealTimer(); return; }   // screen changed under us
+      if (UI.revealTimer.remaining <= 0) { clearRevealTimer(); onExpire(); return; }
+      el.textContent = 'Auto-hiding in ' + UI.revealTimer.remaining + 's';
+    }, 1000);
+  }
+
   // ----------------------------- boot -----------------------------
+  // Test-only hook (no footprint in production: only attached when a test sets window.__WORD_TEST).
+  if (window.__WORD_TEST) window.__WORD_UI = { state: function () { return UI.g; }, ui: UI, engine: engine, render: render };
   render();
 })();
