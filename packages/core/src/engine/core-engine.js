@@ -214,6 +214,8 @@
         marks: null,          // games with a Mark system initialize this in a hook
         knowledge: {},        // seat -> [facts] (PRIVATE; never in publicView)
         faceUp: {},           // seat -> {role} cards a role turned face-up (PUBLIC by design)
+        faceUpCenter: {},     // center index -> {role} center cards exposed (PUBLIC by design)
+        variants: {},         // seat -> chosen action variant (e.g. Alien app-driven roles)
         schedule: [],
         cursor: 0,
         votes: {},            // seat -> target seat
@@ -446,6 +448,10 @@
           if (isShielded(state, seatPos(targetSeat))) { learned.push({ kind: 'noop', reason: 'That card is protected.' }); return; }
           state.faceUp[targetSeat] = { role: printedRoleAt(state, seatPos(targetSeat)) };
         },
+        // Turn a CENTER card face-up for the whole table (Exposer). PUBLIC by design.
+        revealCenter: function (i) { state.faceUpCenter[i] = { role: printedRoleAt(state, 'c' + i) }; },
+        // App-chosen action variant for this seat, fixed at deal time (Alien app-driven roles).
+        myVariant: function () { return state.variants[seat]; },
         // mark helpers attach only when a game initialized state.marks
         placeMark: function (type, targetSeat) { return placeMark(state, type, targetSeat, learned); },
         moveMark: function (fromSeat, toSeat) { return moveMark(state, fromSeat, toSeat, learned); },
@@ -514,6 +520,7 @@
     function helpers(state) {
       return {
         REG: REG, role: role, teamOfRole: teamOfRole,
+        rngInt: function (n) { return randInt(state, n); },
         placeMark: function (t, s) { return placeMark(state, t, s); },
         cardAt: function (pos) { return cardAt(state, pos); },
         pushLog: function (t, secret) { pushLog(state, t, secret); }
@@ -1014,6 +1021,10 @@
         revealedCards: Object.keys(state.faceUp).map(function (s) {
           var rid = state.faceUp[s].role;
           return { seat: +s, name: state.players[s].name, roleName: (REG[rid] || {}).name };
+        }),
+        revealedCenter: Object.keys(state.faceUpCenter || {}).map(function (i) {
+          var rid = state.faceUpCenter[i].role;
+          return { index: +i, roleName: (REG[rid] || {}).name };
         }),
         votesCast: Object.keys(state.votes).length,
         // results only exist after the game ends (state.result), surfaced separately:

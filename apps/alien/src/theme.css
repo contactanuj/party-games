@@ -1,0 +1,12 @@
+/* theme.css (Alien) — CSS custom-property overrides only. Deep-space teal palette. */
+:root {
+  --bg: #04121a;
+  --panel: #0c2230;
+  --text: #e8f6f1;
+  --muted: #8fb6ad;
+  --accent: #39c08a;   /* bio-green */
+  --danger: #e0564f;
+  --good: #46c7a0;
+}
+body { background: radial-gradient(120% 80% at 50% -10%, #0e3a52 0%, #04121a 62%); }
+h1 { text-shadow: 0 2px 18px rgba(57,192,138,.28); }

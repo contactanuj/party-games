@@ -402,9 +402,9 @@
       timer = '<div class="timer">' + fmt(ui.timerLeft) + '</div>';
     }
     var pv = E.publicView(G);
-    var revealed = (pv.revealedCards && pv.revealedCards.length)
-      ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + pv.revealedCards.map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); }).join('<br>') + '</div>'
-      : '';
+    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); })
+      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' — ' + esc(r.roleName); }));
+    var revealed = revLines.length ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + revLines.join('<br>') + '</div>' : '';
     return screen(true,
       '<h1>Daybreak</h1>' +
       '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +

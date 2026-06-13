@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Alien",
+    "slug": "alien",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#04121a",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#04121a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.partydeck.alien",
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#04121a"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.partydeck.alien",
+      "supportsTablet": false
+    },
+    "plugins": [
+      [
+        "react-native-webview",
+        {
+          "allowFileAccessFromFileURLs": true,
+          "allowUniversalAccessFromFileURLs": true
+        }
+      ]
+    ]
+  }
+}
