@@ -122,6 +122,15 @@ function defaultSpec(id) {
 function generate(appDir) {
   appDir = appDir || process.cwd();
   var id = JSON.parse(fs.readFileSync(path.join(appDir, 'identity.json'), 'utf8'));
+
+  // Guard: apps with a hand-authored (custom) icon opt out of generation so a stray
+  // `gen:icons` run can't overwrite real branding. Set "customIcon": true in identity.json
+  // (any emblem spec below is preserved, so generation can be re-enabled by flipping the flag).
+  if (id.customIcon === true || id.icon === 'custom') {
+    console.log('Skipped icon generation for ' + (id.name || id.slug || appDir) + ' (custom icon).');
+    return { skipped: true };
+  }
+
   var spec = id.icon || defaultSpec(id);
   var emblem = EMBLEMS[spec.emblem] || emblemMoon;
   var bgHi = hex(spec.bg ? spec.bg[0] : '#1b2433'), bgLo = hex(spec.bg ? spec.bg[1] : '#0a0e16');
