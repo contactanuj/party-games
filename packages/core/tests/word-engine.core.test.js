@@ -252,6 +252,35 @@ section('multi-round scoring + match end');
 })();
 
 // ---------------------------------------------------------------------------
+section('config respects the player count (normalizeConfig + maxOutsiders)');
+[{ e: IMP, lib: WORD_LIB }, { e: UNDER, lib: PAIR_LIB }, { e: SPY, lib: LOC_LIB }].forEach(function (g) {
+  var E = g.e, lib = g.lib;
+  for (var pc = 3; pc <= 8; pc++) {
+    ok(E.validateConfig(E.defaultConfig(pc), lib).ok, E.game + ' ' + pc + 'p default validates');
+    var mo = E.maxOutsiders(pc);
+    var atMax = E.defaultConfig(pc); atMax.outsiderCount = mo;
+    ok(E.validateConfig(atMax, lib).ok, E.game + ' ' + pc + 'p outsiders=' + mo + ' (max) is allowed');
+    var over = E.defaultConfig(pc); over.outsiderCount = mo + 1;
+    ok(!E.validateConfig(over, lib).ok, E.game + ' ' + pc + 'p outsiders=' + (mo + 1) + ' is REJECTED');
+    // normalizeConfig coerces any garbage into a valid, count-respecting config
+    var bad = E.defaultConfig(pc); bad.outsiderCount = 99; bad.botCount = 99; bad.cluesPerPlayer = 0; bad.questionsPerRound = 0; bad.winTarget = 0; bad.outsiderGuesses = 0;
+    E.normalizeConfig(bad);
+    ok(bad.outsiderCount >= 1 && bad.outsiderCount <= mo, E.game + ' ' + pc + 'p normalize clamps outsiderCount into range');
+    ok(bad.botCount >= 0 && bad.botCount <= pc - 1, E.game + ' ' + pc + 'p normalize clamps botCount (keeps >=1 human)');
+    ok(E.validateConfig(bad, lib).ok, E.game + ' ' + pc + 'p normalized-garbage validates');
+    var allBots = E.defaultConfig(pc); allBots.botCount = pc;
+    ok(!E.validateConfig(allBots, lib).ok, E.game + ' ' + pc + 'p all-bots is REJECTED');
+    E.normalizeConfig(allBots); ok(allBots.botCount === pc - 1, E.game + ' ' + pc + 'p normalize leaves exactly one human');
+  }
+  // player count itself: below min / above max / fractional are rejected, and normalize fixes them
+  var lo = E.defaultConfig(3); lo.playerCount = 2; ok(!E.validateConfig(lo, lib).ok, E.game + ' below-min player count rejected');
+  var frac = E.defaultConfig(5); frac.playerCount = 5.5; ok(!E.validateConfig(frac, lib).ok, E.game + ' fractional player count rejected');
+  var hi = E.defaultConfig(5); hi.playerCount = 99; ok(!E.validateConfig(hi, lib).ok, E.game + ' above-max player count rejected');
+  var np = E.defaultConfig(5); np.playerCount = 99; E.normalizeConfig(np);
+  ok(np.playerCount <= 12 && np.playerNames.length === np.playerCount && E.validateConfig(np, lib).ok, E.game + ' normalize clamps pc + fixes names -> valid');
+});
+
+// ---------------------------------------------------------------------------
 section('bots: deterministic, fair, terminating');
 (function () {
   var c = IMP.defaultConfig(6); c.botCount = 5; c.recordClues = true;
