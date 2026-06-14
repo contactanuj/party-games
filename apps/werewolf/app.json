@@ -35,12 +35,6 @@
     "androidNavigationBar": {
       "backgroundColor": "#0e1117",
       "barStyle": "light-content"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "0f2d600f-1da4-4234-b561-0ee319f57ef7"
-      }
-    },
-    "owner": "snyper-drydan"
+    }
   }
 }
