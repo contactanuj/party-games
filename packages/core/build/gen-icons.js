@@ -1,5 +1,5 @@
 /*
- * gen-icons.js — dependency-free app-icon generator. Renders clean, flat, anti-aliased PNGs
+ * gen-icons.js - dependency-free app-icon generator. Renders clean, flat, anti-aliased PNGs
  * (1024 icon with a gradient background + emblem, and a transparent-background splash emblem)
  * using only Node's built-in zlib. Each app's identity.json carries an `icon` spec:
  *   "icon": { "emblem": "moon|sun|drop|saucer", "bg": ["#hi","#lo"], "fg": "#emblem", "accent": "#ring" }

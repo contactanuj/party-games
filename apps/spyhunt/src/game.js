@@ -1,5 +1,5 @@
 /*
- * game.js (Spy Hunt) — definition for WordCore.createEngine() + UI meta.
+ * game.js (Spy Hunt) - definition for WordCore.createEngine() + UI meta.
  *
  * The "Spyfall" ruleset, shipped under a generic name (the Spyfall name/marks are Cryptozoic's).
  * Everyone shares a LOCATION and a personal role there; the Spy gets neither. Free-form Q&A on an
@@ -51,7 +51,7 @@
     validateRules: [
       function (c) {
         if (c.outsiderCount >= 2 && c.playerCount < 6) {
-          return { level: 'warn', text: 'Two Spies works best with 6+ players — with fewer, the Agents are stretched thin.' };
+          return { level: 'warn', text: 'Two Spies works best with 6+ players - with fewer, the Agents are stretched thin.' };
         }
         return null;
       }
@@ -59,7 +59,7 @@
 
     meta: {
       title: 'Spy Hunt',
-      tagline: 'Everyone knows the location — except the Spy. Ask sharp questions, prove you belong, and unmask the impostor before the clock runs out.',
+      tagline: 'Everyone knows the location - except the Spy. Ask sharp questions, prove you belong, and unmask the impostor before the clock runs out.',
       variants: [
         { id: 'standard', name: 'Standard', blurb: 'One Spy, 8-minute round. Accuse any time (everyone must agree).',
           patch: { outsiderCount: 1, timerSeconds: 480 } },
@@ -76,8 +76,8 @@
       },
       hiddenOptions: ['interaction', 'cluesPerPlayer', 'recordClues', 'questionsPerRound', 'contentModel', 'giveOutsiderHint', 'guessMode', 'caughtCanGuess', 'outsiderGuesses', 'debatePhase'],
       help: [
-        'Pass the phone around — each player privately sees the LOCATION and their role there. The Spy is told only that they are the Spy.',
-        'Start the timer. Take turns asking each other questions about the place — answer so the others know you belong, without naming the location (the Spy is listening).',
+        'Pass the phone around - each player privately sees the LOCATION and their role there. The Spy is told only that they are the Spy.',
+        'Start the timer. Take turns asking each other questions about the place - answer so the others know you belong, without naming the location (the Spy is listening).',
         'Any time, tap Accuse: if everyone else agrees, the accused is revealed. Catch the Spy to win; accuse wrongly and the Spy wins. The Spy can stop the clock to guess the location for the win.'
       ]
     }

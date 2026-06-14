@@ -1,4 +1,4 @@
-/* build.js (Werewolf) — composes assets/app.html from @partydeck/core + this app's src/*. */
+/* build.js (Werewolf) - composes assets/app.html from @partydeck/core + this app's src/*. */
 'use strict';
 var path = require('path');
 function loadCompose() {

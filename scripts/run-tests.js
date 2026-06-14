@@ -1,5 +1,5 @@
 /*
- * run-tests.js — dependency-free test runner for CI and local use. Walks packages/* and apps/*
+ * run-tests.js - dependency-free test runner for CI and local use. Walks packages/* and apps/*
  * for files matching tests/**\/*.test.js and runs each with `node`, then prints a summary and
  * exits non-zero if any file fails. The tests themselves need no npm install (pure Node + relative
  * requires), so CI can run this straight after checkout.

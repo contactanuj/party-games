@@ -1,5 +1,5 @@
 /*
- * ui.imposter.smoke.test.js — loads the REAL word-ui.js + Imposter game in a node DOM stub and
+ * ui.imposter.smoke.test.js - loads the REAL word-ui.js + Imposter game in a node DOM stub and
  * drives a full pass-and-play round by clicking. Asserts the SECRECY INVARIANTS:
  *   - the secret word NEVER appears on a shared screen (lobby/clues/debate/vote pass/vote pick);
  *   - it appears only on the gated reveal/recheck card, for the one player who confirmed;

@@ -1,5 +1,5 @@
 /*
- * roles.js (Vampire) — village roles plus the Vampire team and the Marks system.
+ * roles.js (Vampire) - village roles plus the Vampire team and the Marks system.
  *   Marks: clarity (default), vampire (join the vampires), fear (can't act), bat (Renfield),
  *   disease (your voters can't win), love (death-linked lovers), traitor (win only if a
  *   teammate dies), assassin (the Assassin wins if you die).
@@ -30,7 +30,7 @@
     {
       id: 'copycat', name: 'Copycat', team: function () { return 'village'; }, wake: -8, maxCopies: 1, optional: false,
       blurb: 'Look at a center card and become that role for the rest of the game.',
-      prompt: 'View a center card — you become that role.',
+      prompt: 'View a center card - you become that role.',
       narration: { open: 'Copycat, wake up and look at one center card. You are now that role.', close: 'Copycat, close your eyes.' },
       inputs: function () { return [{ id: 'center', type: 'pickCenter', count: 1, label: 'Copy which center card?' }]; },
       act: function (ctx, inputs) {
@@ -104,7 +104,7 @@
 
     {
       id: 'diseased', name: 'Diseased', team: 'village', wake: -5, maxCopies: 1,
-      blurb: 'Mark a neighbor with Disease — anyone who votes for them cannot win.',
+      blurb: 'Mark a neighbor with Disease - anyone who votes for them cannot win.',
       prompt: 'Mark a neighbor with Disease.',
       narration: { open: 'Diseased, wake up and mark the player to your left or right with Disease.', close: 'Diseased, close your eyes.' },
       inputs: function (ctx) {
@@ -116,7 +116,7 @@
 
     {
       id: 'cupid', name: 'Cupid', team: 'village', wake: -4, maxCopies: 1, optional: true,
-      blurb: 'Link two players as Lovers — if one is eliminated, both are.',
+      blurb: 'Link two players as Lovers - if one is eliminated, both are.',
       prompt: 'You may link two players in love.',
       narration: { open: 'Cupid, wake up. You may give two players the Mark of Love.', close: 'Cupid, close your eyes.' },
       inputs: function () {
@@ -133,7 +133,7 @@
 
     {
       id: 'instigator', name: 'Instigator', team: 'village', wake: -3, maxCopies: 1, optional: true,
-      blurb: 'You may brand a player a Traitor — they win only if a teammate is eliminated.',
+      blurb: 'You may brand a player a Traitor - they win only if a teammate is eliminated.',
       prompt: 'You may give a player the Mark of the Traitor.',
       narration: { open: 'Instigator, wake up. You may give a player the Mark of the Traitor.', close: 'Instigator, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Brand whom? (or skip)', exclude: [ctx.self], optional: true }]; },
@@ -142,7 +142,7 @@
 
     {
       id: 'priest', name: 'Priest', team: 'village', wake: -2, maxCopies: 1,
-      blurb: 'Cleanse yourself (Mark of Clarity) and, optionally, one other player — clearing any other mark.',
+      blurb: 'Cleanse yourself (Mark of Clarity) and, optionally, one other player - clearing any other mark.',
       prompt: 'Bless yourself, and optionally one other.',
       narration: { open: 'Priest, wake up. Give yourself a Mark of Clarity; you may also bless one other player.', close: 'Priest, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Also bless whom? (optional)', exclude: [ctx.self], optional: true }]; },
@@ -290,7 +290,7 @@
     };
   }
 
-  // Vampire is village vs vampires — drop the Werewolf-specific roles from the base set.
+  // Vampire is village vs vampires - drop the Werewolf-specific roles from the base set.
   var villageBase = BASE.roles.filter(function (r) { return ['werewolf', 'minion'].indexOf(r.id) === -1; });
 
   var presets = {
@@ -316,13 +316,13 @@
     resolveOutcome: resolveOutcome,
     voteModifiers: [loversLink],
     markDesc: {
-      vampire: 'Mark of the Vampire — you are now a Vampire.',
-      fear: 'Mark of Fear — you cannot use your power tonight.',
-      bat: 'Mark of the Bat — Renfield\'s token.',
-      disease: 'Mark of Disease — anyone who votes for you cannot win.',
-      love: 'Mark of Love — you are linked to your lover; if one dies, both die.',
-      traitor: 'Mark of the Traitor — you win only if a teammate is eliminated.',
-      assassin: 'Mark of the Assassin — the Assassin wins if you are eliminated.'
+      vampire: 'Mark of the Vampire - you are now a Vampire.',
+      fear: 'Mark of Fear - you cannot use your power tonight.',
+      bat: 'Mark of the Bat - Renfield\'s token.',
+      disease: 'Mark of Disease - anyone who votes for you cannot win.',
+      love: 'Mark of Love - you are linked to your lover; if one dies, both die.',
+      traitor: 'Mark of the Traitor - you win only if a teammate is eliminated.',
+      assassin: 'Mark of the Assassin - the Assassin wins if you are eliminated.'
     },
     teams: [
       { id: 'village', name: 'Village', good: true },

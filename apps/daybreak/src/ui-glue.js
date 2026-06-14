@@ -1,4 +1,4 @@
-/* ui-glue.js (Daybreak) — per-game copy/labels layered on the shared UI. */
+/* ui-glue.js (Daybreak) - per-game copy/labels layered on the shared UI. */
 window.PARTY_META = {
   title: 'Daybreak',
   tagline: 'A longer night, stranger powers. Shields, artifacts, and wolves that turn the village against itself. Survive to dawn.',

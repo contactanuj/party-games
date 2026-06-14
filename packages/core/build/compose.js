@@ -1,5 +1,5 @@
 /*
- * compose.js — the shared inliner. Each app's build.js calls composeAppHtml({appDir, ...})
+ * compose.js - the shared inliner. Each app's build.js calls composeAppHtml({appDir, ...})
  * which reads the shared @partydeck/core sources + the app's own src/* and concatenates them
  * into a single self-contained assets/app.html (the WebView loads one HTML string, so nothing
  * can be an external file).
@@ -66,7 +66,7 @@ function composeAppHtml(opts) {
   fs.writeFileSync(out, html, 'utf8');
 
   // Also emit the HTML as a plain JS string module the app imports directly. This is what the
-  // app actually loads — it sidesteps Metro asset-extension resolution (which is unreliable on
+  // app actually loads - it sidesteps Metro asset-extension resolution (which is unreliable on
   // EAS for a non-standard .html asset) and needs no runtime file read. JSON.stringify produces
   // a safe, fully-escaped JS string literal.
   fs.writeFileSync(path.join(appDir, 'assets', 'app-html.js'), 'module.exports = ' + JSON.stringify(html) + ';\n', 'utf8');
@@ -75,7 +75,7 @@ function composeAppHtml(opts) {
 }
 
 /*
- * composeWordAppHtml — the inliner for the word-deduction family (Imposter, Out of the Loop,
+ * composeWordAppHtml - the inliner for the word-deduction family (Imposter, Out of the Loop,
  * Spyfall). Script load order MATTERS:
  *   word-engine.js -> window.WordCore
  *   content.js     -> window.WORD_CONTENT (the app's pack library)
@@ -125,7 +125,7 @@ function composeWordAppHtml(opts) {
   fs.writeFileSync(out, html, 'utf8');
 
   // Also emit the HTML as a plain JS string module the app imports directly. This is what the
-  // app actually loads — it sidesteps Metro asset-extension resolution (which is unreliable on
+  // app actually loads - it sidesteps Metro asset-extension resolution (which is unreliable on
   // EAS for a non-standard .html asset) and needs no runtime file read. JSON.stringify produces
   // a safe, fully-escaped JS string literal.
   fs.writeFileSync(path.join(appDir, 'assets', 'app-html.js'), 'module.exports = ' + JSON.stringify(html) + ';\n', 'utf8');

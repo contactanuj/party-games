@@ -1,5 +1,5 @@
 /*
- * engine.outoftheloop.test.js — drives the REAL Out of the Loop game + content through the shared
+ * engine.outoftheloop.test.js - drives the REAL Out of the Loop game + content through the shared
  * engine. Dependency-free Node. Covers the 'questions' interaction, the public-category / hidden-
  * word reveal, the no-leak boundary, and a full scored round.
  */

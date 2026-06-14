@@ -1,7 +1,7 @@
 # Party Deck
 
-A monorepo of **standalone pass-and-play party games** — each its own Android app (one APK / store
-product) — that share one engineering foundation. Everything runs **offline on a single device**
+A monorepo of **standalone pass-and-play party games** - each its own Android app (one APK / store
+product) - that share one engineering foundation. Everything runs **offline on a single device**
 that players pass around: the phone privately shows each player their secret, hides it, and resolves
 the whole game.
 
@@ -17,15 +17,15 @@ produced by a `build.js` step from a **pure, deterministic, unit-tested engine**
 
 ## The word-deduction games
 
-- **Imposter** — everyone gets the secret word; one player doesn't. Give a one-word clue, find the
+- **Imposter** - everyone gets the secret word; one player doesn't. Give a one-word clue, find the
   fake. *Classic*, *Beginner* (the Imposter gets the category) and *Undercover* (the Imposter gets a
   close-but-different word and isn't told they're the odd one out).
-- **Out of the Loop** — the app asks questions about a secret word; everyone answers in turn. The
+- **Out of the Loop** - the app asks questions about a secret word; everyone answers in turn. The
   Outsider knows only the category and must blend in. *Standard / Hard / Blind Outsider.*
-- **Spy Hunt** — everyone shares a location and a role there; the Spy knows neither. Question each
+- **Spy Hunt** - everyone shares a location and a role there; the Spy knows neither. Question each
   other on a timer; accuse (everyone must agree) or let the Spy stop the clock to name the location.
   *Standard / Quick / Two Spies.* (The "Spyfall" name is a third-party trademark; this is an
-  original-content implementation — see [NOTICE.md](NOTICE.md).)
+  original-content implementation - see [NOTICE.md](NOTICE.md).)
 
 ## Design tenets
 
@@ -40,14 +40,14 @@ produced by a `build.js` step from a **pure, deterministic, unit-tested engine**
   `validateConfig` returns `{errors, warnings}`. Errors make an illegal/unwinnable setup impossible
   to start (the UI disables the proceed button); warnings flag off-spec-but-playable setups.
 - **Offline bots.** Any seat can be a computer player to fill the table. These are talking games, so
-  bots fill seats and vote but can't truly bluff — the lobby says so.
+  bots fill seats and vote but can't truly bluff - the lobby says so.
 - **Generated assets.** `app.html`, `app.json`, `icon.png` and `splash.png` are all generated from
   source; only the source is edited.
 
 ## Layout
 
 ```text
-packages/core                       @partydeck/core — the shared foundation
+packages/core                       @partydeck/core - the shared foundation
   src/engine/core-engine.js         night/vote/reveal engine (Werewolf family)
   src/engine/word-engine.js         secret-word / find-the-outsider engine
   src/ui/core-ui.js, word-ui.js     shared pass-and-play UIs (one per family)
@@ -62,7 +62,7 @@ scripts/run-tests.js                dependency-free runner for every test
 ## Develop
 
 ```bash
-# Run every engine + UI smoke test (no install needed — pure Node):
+# Run every engine + UI smoke test (no install needed - pure Node):
 node scripts/run-tests.js
 
 # Per app (example: imposter):
@@ -85,4 +85,4 @@ workflow and pick the app. The token is never stored in the repo.
 ## License
 
 [MIT](LICENSE). Game *content* is original; see [NOTICE.md](NOTICE.md) for the originality and
-trademark notice. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+trademark notice. Contributions welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).

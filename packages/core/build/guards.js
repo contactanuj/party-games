@@ -1,5 +1,5 @@
 /*
- * guards.js — build-time safety checks shared by every app's build.js.
+ * guards.js - build-time safety checks shared by every app's build.js.
  *  - guardNoScriptClose: a literal </script> in any inlined source would prematurely close
  *    the <script> tag and corrupt app.html.
  *  - assertThemeTokens: every theme.css must define the CSS custom properties base.css relies

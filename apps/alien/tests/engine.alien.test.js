@@ -1,7 +1,7 @@
 /*
- * engine.alien.test.js — the Alien team + app-driven variants + solo win roles on the shared
+ * engine.alien.test.js - the Alien team + app-driven variants + solo win roles on the shared
  * engine: alien-team win, alienized conversion, Synthetic catastrophe, Blob cluster, Mortician,
- * Groob/Zerb frenemies, Exposer center-reveal, per-game variants — plus fuzz, determinism,
+ * Groob/Zerb frenemies, Exposer center-reveal, per-game variants - plus fuzz, determinism,
  * and the no-leak boundary. Run: node tests/engine.alien.test.js
  */
 'use strict';

@@ -1,5 +1,5 @@
 /*
- * make-icon.js (Imposter) — renders assets/icon.png (1024x1024), zero deps.
+ * make-icon.js (Imposter) - renders assets/icon.png (1024x1024), zero deps.
  * A clean domino/masquerade mask (hidden identity) in brand violet inside a thin ring, on the
  * deep-indigo brand background. Drawn with SDF shapes via the shared png-canvas helper.
  * Run: node scripts/make-icon.js

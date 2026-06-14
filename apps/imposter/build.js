@@ -1,4 +1,4 @@
-/* build.js (Imposter) — composes assets/app.html from @partydeck/core + this app's src/*. */
+/* build.js (Imposter) - composes assets/app.html from @partydeck/core + this app's src/*. */
 'use strict';
 var path = require('path');
 function loadCompose() {

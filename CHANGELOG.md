@@ -8,11 +8,11 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 - **Word-deduction game family** on a new shared engine (`@partydeck/core/word-engine`):
-  - **Imposter** — secret word, one fake. Variants: Classic, Beginner (Imposter gets the
+  - **Imposter** - secret word, one fake. Variants: Classic, Beginner (Imposter gets the
     category), and Undercover (Imposter gets a close-but-different word).
-  - **Out of the Loop** — app-driven question rounds; the Outsider knows only the category.
+  - **Out of the Loop** - app-driven question rounds; the Outsider knows only the category.
     Variants: Standard, Hard, Blind Outsider. Individual scoring.
-  - **Spy Hunt** — the Spyfall ruleset under a generic name: 30 locations (3 themed packs),
+  - **Spy Hunt** - the Spyfall ruleset under a generic name: 30 locations (3 themed packs),
     8-minute timer, accuse-anytime (unanimous), spy stop-the-clock location guess; classic
     1/2/2/4/4 scoring with an accuser bonus. Variants: Standard, Quick, Two Spies.
 - One configurable engine, three games (`contentModel` × `interaction` × `guessMode`), with a
@@ -26,14 +26,14 @@ All notable changes to this project are documented here. The format is based on
 
 ### Changed
 - **Safe-area / status bar**: shared `base.css` now applies `env(safe-area-inset-top)` (and
-  left/right); generated `app.json` sets a non-translucent Android status bar — content no longer
+  left/right); generated `app.json` sets a non-translucent Android status bar - content no longer
   renders under the notch / status bar.
 - **Keyboard handling**: Android `softwareKeyboardLayoutMode: resize` + scroll-to-top on each
   render, so focusing a text input never pushes the UI up under the status bar.
 - **Timer-based reveal**: the secret card auto-hides after a configurable countdown
   (wink-killer style) while still allowing an early hide and a gated re-check.
 - **Advanced settings**: the proceed button is disabled while a configuration is invalid (with
-  validation surfaced at the top), and steppers cap to the player count — you can no longer leave
+  validation surfaced at the top), and steppers cap to the player count - you can no longer leave
   settings with an unstartable game.
 
 [Unreleased]: https://example.com/your-repo/commits/main

@@ -1,5 +1,5 @@
 /*
- * word-engine.js — shared rules engine for the "secret-word / find-the-outsider" family
+ * word-engine.js - shared rules engine for the "secret-word / find-the-outsider" family
  * (Imposter, Out of the Loop, Spyfall, and later The Chameleon). PURE: no DOM, no network.
  *
  * This is the SECOND engine in @partydeck/core, a sibling to core-engine.js (the Werewolf
@@ -8,7 +8,7 @@
  * location+role) and hides it from one or more "outsiders", who must blend in while the
  * table hunts them by listening to clues / answers / questions, then voting.
  *
- * One engine, three games, by configuration — this is deliberate so that "every practical
+ * One engine, three games, by configuration - this is deliberate so that "every practical
  * variation" is a config flag on ONE well-tested core, not four diverging copies:
  *
  *   contentModel:                what the insiders share, and what the outsider lacks
@@ -29,7 +29,7 @@
  *    so a whole match (humans + bots) replays exactly.
  *  - JSON-SERIALIZABLE state: only arrays/objects/primitives on `state` (survives localStorage
  *    and a future network transport). No functions/Map/Set on state.
- *  - INFORMATION BOUNDARY (the secrecy backbone — read before touching the UI):
+ *  - INFORMATION BOUNDARY (the secrecy backbone - read before touching the UI):
  *      publicState(state)  -> what a SHARED screen may render. Carries NOTHING that differs by
  *                             role: no isOutsider, no secret, no per-seat private data, and the
  *                             player list is byte-identical in shape for outsider and insider.
@@ -48,7 +48,7 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Seeded PRNG (mulberry32) — deterministic + serialized via state.rngState.
+  // Seeded PRNG (mulberry32) - deterministic + serialized via state.rngState.
   // ---------------------------------------------------------------------------
   function nextRand(state) {
     var t = (state.rngState = (state.rngState + 0x6D2B79F5) >>> 0);
@@ -144,7 +144,7 @@
         questionsPerRound: 3,              // ('questions') how many app questions before the vote
         debatePhase: true,                 // an explicit "discuss now" step before voting
         timerSeconds: def.defaultTimerSeconds || 0, // discussion/play clock (0 = off)
-        revealSeconds: def.revealSeconds == null ? 8 : def.revealSeconds, // auto-hide the secret card after N seconds (0 = manual only). Limits over-the-shoulder peeking — a UI concern, not a rule.
+        revealSeconds: def.revealSeconds == null ? 8 : def.revealSeconds, // auto-hide the secret card after N seconds (0 = manual only). Limits over-the-shoulder peeking - a UI concern, not a rule.
 
         // ---- catching the outsider ----
         accusationMode: def.defaultAccusationMode || 'vote', // 'vote' (one tally) | 'unanimous_anytime' (Spyfall)
@@ -153,7 +153,7 @@
         tieBreaker: 'revote',              // dealer | revote | outsider_escapes
         outsiderGuesses: 1,                // guesses the outsider gets when caught
         guessMode: DEFAULT_GUESS,          // none | free | list | fromTopic
-        caughtCanGuess: def.caughtCanGuessDefault !== false, // a CAUGHT outsider gets a guess (Spyfall: false — the spy's only guess is a voluntary stop)
+        caughtCanGuess: def.caughtCanGuessDefault !== false, // a CAUGHT outsider gets a guess (Spyfall: false - the spy's only guess is a voluntary stop)
         allowOutsiderEarlyGuess: !!def.allowOutsiderEarlyGuessDefault, // spy may stop & guess anytime
 
         // ---- scoring (named buckets cover all three games) ----
@@ -181,7 +181,7 @@
     // -------------------------------------------------------------------------
     // Count authority. The MOST outsiders a player count can support while leaving the informed
     // players a strict majority (so the hunt is always fair). This is the single source of truth
-    // for the "config must respect the player count" rule — the UI's steppers and normalizeConfig
+    // for the "config must respect the player count" rule - the UI's steppers and normalizeConfig
     // both read it, so they can never drift from validateConfig.
     //   pc 3->1  4->1  5->2  6->2  7->3  8->3  9->4 ...
     // -------------------------------------------------------------------------
@@ -193,9 +193,9 @@
       return Math.max(lo, Math.min(hi, v));
     }
 
-    // normalizeConfig — coerce ANY config into a valid one for its (clamped) player count, in place.
+    // normalizeConfig - coerce ANY config into a valid one for its (clamped) player count, in place.
     // After this, validateConfig() can only fail on things the user must type (e.g. a blank name) or
-    // content selection — never on a count-vs-config contradiction. The UI calls this on load and
+    // content selection - never on a count-vs-config contradiction. The UI calls this on load and
     // after every change so the screen can never present, or start, a self-contradictory setup.
     function normalizeConfig(config) {
       var c = config || {};
@@ -246,7 +246,7 @@
         var nm = (names[i] || '').trim();
         if (!nm) { errors.push('Every player needs a name (player ' + (i + 1) + ' is blank).'); continue; }
         var key = nm.toLowerCase();
-        if (seen[key]) warnings.push('Two players are both named "' + nm + '" — they will be hard to tell apart.');
+        if (seen[key]) warnings.push('Two players are both named "' + nm + '" - they will be hard to tell apart.');
         seen[key] = true;
       }
 
@@ -266,9 +266,9 @@
       var oc = c.outsiderCount;
       if (oc != null && oc !== Math.round(oc)) errors.push('Number of ' + outsiderLabel(2) + ' must be a whole number.');
       if (!(oc >= 1)) errors.push('There must be at least 1 ' + OUTSIDER.label + '.');
-      else if (oc >= pc) errors.push('The ' + outsiderLabel(2) + ' cannot be everyone — leave players in the know.');
-      else if (oc >= Math.ceil(pc / 2)) errors.push('With ' + oc + ' ' + outsiderLabel(oc) + ' and only ' + pc + ' players, the informed players are not a majority — the hunt is unfair. Use at most ' + (Math.ceil(pc / 2) - 1) + '.');
-      else if (oc > 1) warnings.push('More than one ' + OUTSIDER.label + ' is a team variant — they win/lose together. Balance shifts toward the ' + outsiderLabel(2) + '.');
+      else if (oc >= pc) errors.push('The ' + outsiderLabel(2) + ' cannot be everyone - leave players in the know.');
+      else if (oc >= Math.ceil(pc / 2)) errors.push('With ' + oc + ' ' + outsiderLabel(oc) + ' and only ' + pc + ' players, the informed players are not a majority - the hunt is unfair. Use at most ' + (Math.ceil(pc / 2) - 1) + '.');
+      else if (oc > 1) warnings.push('More than one ' + OUTSIDER.label + ' is a team variant - they win/lose together. Balance shifts toward the ' + outsiderLabel(2) + '.');
 
       // Content model (variant).
       var model = modelOf(c);
@@ -299,7 +299,7 @@
           if (c[buckets[b]] != null && c[buckets[b]] < 0) errors.push('Point values cannot be negative (' + buckets[b] + ').');
         }
         if (!c.scoreOutsiderEscape && !c.scoreOutsiderGuess && !c.scoreInsiderCatch && !c.scoreOutsiderSolved && !c.scoreWrongConviction) {
-          warnings.push('All point values are 0 — nobody can ever reach the winning score.');
+          warnings.push('All point values are 0 - nobody can ever reach the winning score.');
         }
       }
 
@@ -310,7 +310,7 @@
         var avail = availablePacks(c, library);
         var items = avail.reduce(function (n, p) { return n + (p.items ? p.items.length : 0); }, 0);
         if (avail.length === 0 || items === 0) errors.push('No content matches your selection. Enable more packs.');
-        else if (avail.length < 2) warnings.push('Only one content pack is selected — rounds will repeat quickly.');
+        else if (avail.length < 2) warnings.push('Only one content pack is selected - rounds will repeat quickly.');
         // locationRoles + guessMode:list needs enough locations to make a guess meaningful.
         if (modelOf(c) === 'locationRoles' && c.guessMode === 'list' && items < 6) {
           warnings.push('Fewer than 6 locations makes the ' + OUTSIDER.label + "'s final guess almost free.");
@@ -379,8 +379,8 @@
         // per-round fields (populated by startRound)
         outsiderSeats: [],
         pack: null,
-        secret: null,          // { model, display, alt?, index?, packId } — the truth (NEVER in publicState)
-        seatSecret: {},        // seat -> private payload (role at location, near-word) — NEVER in publicState
+        secret: null,          // { model, display, alt?, index?, packId } - the truth (NEVER in publicState)
+        seatSecret: {},        // seat -> private payload (role at location, near-word) - NEVER in publicState
         clueOrder: [],
         clueRound: 0,          // 0-based pass index (cluesPerPlayer passes)
         clueIdx: 0,
@@ -462,7 +462,7 @@
       state.winnerSeats = null;
       state.phase = 'reveal';
 
-      pushLog(state, 'Round ' + state.round + ' — ' + nameOf(state, state.dealerSeat) + ' starts. Pack: ' + pack.name + '.');
+      pushLog(state, 'Round ' + state.round + ' - ' + nameOf(state, state.dealerSeat) + ' starts. Pack: ' + pack.name + '.');
       return state;
     }
 
@@ -498,7 +498,7 @@
           state.seatSecret[p.seat] = { word: isOut[p.seat] ? null : it.display };
         });
       }
-      // The outsider may be told the CATEGORY (a softer variant) — stored privately only.
+      // The outsider may be told the CATEGORY (a softer variant) - stored privately only.
       if (c.giveOutsiderHint) {
         state.outsiderSeats.forEach(function (s) {
           state.seatSecret[s] = state.seatSecret[s] || {};
@@ -622,18 +622,18 @@
         state.accusedSeat = accusedSeat;
         state.accuserSeat = accuserSeat;
         state.phase = 'tally';
-        pushLog(state, nameOf(state, accuserSeat) + ' accuses ' + nameOf(state, accusedSeat) + ' — the table agrees.');
+        pushLog(state, nameOf(state, accuserSeat) + ' accuses ' + nameOf(state, accusedSeat) + ' - the table agrees.');
         return revealAccused(state);
       }
-      pushLog(state, nameOf(state, accuserSeat) + ' accused ' + nameOf(state, accusedSeat) + ' — no agreement. Play continues.');
+      pushLog(state, nameOf(state, accuserSeat) + ' accused ' + nameOf(state, accusedSeat) + ' - no agreement. Play continues.');
       return state;
     }
-    // The outsider (spy) stops the clock and declares — moves straight to the guess.
+    // The outsider (spy) stops the clock and declares - moves straight to the guess.
     function outsiderReveal(state, seat) {
       if (!isOutsider(state, seat)) throw new Error('Only the ' + OUTSIDER.label + ' may stop the round to guess.');
       if (!state.config.allowOutsiderEarlyGuess) throw new Error('Early guessing is disabled for this game.');
       state.accusedSeat = seat;       // the outsider outs themselves
-      state.caught = true;            // they are "revealed" — but via their own choice
+      state.caught = true;            // they are "revealed" - but via their own choice
       state.selfRevealed = true;
       state.guessesLeft = effectiveGuesses(state);
       state.guessHistory = [];
@@ -695,7 +695,7 @@
 
     function finishVote(state, leaders) {
       if (!leaders.length) {
-        return concludeRound(state, null, OUTCOMES.escaped_undetected, 'No accusation was made — the ' + OUTSIDER.label + ' escapes.');
+        return concludeRound(state, null, OUTCOMES.escaped_undetected, 'No accusation was made - the ' + OUTSIDER.label + ' escapes.');
       }
       var accusedSeat;
       if (leaders.length === 1) {
@@ -707,15 +707,15 @@
           state.phase = 'vote';
           state.votes = {};
           state.lastVotes = { tally: null, leaders: leaders.slice(), manual: false, ballots: null, revote: true, revoteAmong: leaders.slice() };
-          pushLog(state, 'Tied vote — revote (' + state.revoteCount + ').');
+          pushLog(state, 'Tied vote - revote (' + state.revoteCount + ').');
           return state;
         }
         if (tb === 'outsider_escapes') {
-          return concludeRound(state, null, OUTCOMES.escaped_undetected, 'Tied vote — no one is accused, the ' + OUTSIDER.label + ' escapes.');
+          return concludeRound(state, null, OUTCOMES.escaped_undetected, 'Tied vote - no one is accused, the ' + OUTSIDER.label + ' escapes.');
         }
         var dealerVote = state.votes[state.dealerSeat];
         accusedSeat = (dealerVote != null && leaders.indexOf(dealerVote) !== -1) ? dealerVote : leaders[0];
-        pushLog(state, 'Tied vote — ' + nameOf(state, state.dealerSeat) + ' decides: ' + nameOf(state, accusedSeat) + '.');
+        pushLog(state, 'Tied vote - ' + nameOf(state, state.dealerSeat) + ' decides: ' + nameOf(state, accusedSeat) + '.');
       }
       state.accusedSeat = accusedSeat;
       state.phase = 'tally';
@@ -820,7 +820,7 @@
         if (leaders.atTarget.length > 0) {
           state.winnerSeats = leaders.atTarget;
           state.phase = 'game_over';
-          pushLog(state, 'Match over — ' + leaders.atTarget.map(function (s) { return nameOf(state, s); }).join(', ') +
+          pushLog(state, 'Match over - ' + leaders.atTarget.map(function (s) { return nameOf(state, s); }).join(', ') +
             ' reached ' + c.winTarget + '.');
           return state;
         }
@@ -851,11 +851,11 @@
     function rematch(state, library, seed) { return newGame(state.config, library, seed); }
 
     // =========================================================================
-    // Bot play — computer-controlled seats fill the table for solo/practice. Mirrors the
+    // Bot play - computer-controlled seats fill the table for solo/practice. Mirrors the
     // werewolf bot philosophy: choices come from the engine PRNG (deterministic + replayable),
     // and a bot may use ONLY its own private knowledge (never anything a human couldn't deduce).
     // NOTE: these are TALKING games, so bots can fill seats, give a templated clue, answer, and
-    // vote — but they cannot truly bluff. def.botsImpractical surfaces that honestly to the UI.
+    // vote - but they cannot truly bluff. def.botsImpractical surfaces that honestly to the UI.
     // =========================================================================
     function botClueText(state, seat) {
       var priv = state.seatSecret[seat] || {};
@@ -881,7 +881,7 @@
     }
     // Bot vote: a light, NON-cheating heuristic. A bot cannot see who the outsider is, so it
     // votes a random other seat, mildly biased AWAY from seats that gave a recorded clue (a
-    // missing/blank clue looks more suspicious) — exactly what a human has to go on.
+    // missing/blank clue looks more suspicious) - exactly what a human has to go on.
     function botVote(state, seat) {
       var pc = state.players.length, others = [];
       for (var i = 0; i < pc; i++) if (i !== seat) others.push(i);
@@ -911,7 +911,7 @@
     }
 
     // =========================================================================
-    // INFORMATION BOUNDARY — the ONLY thing a shared screen may render.
+    // INFORMATION BOUNDARY - the ONLY thing a shared screen may render.
     // Carries nothing that differs by role. The players array is shape-identical for
     // every seat (name/number/bot only). NO isOutsider, NO secret, NO seatSecret.
     // =========================================================================
@@ -931,7 +931,7 @@
         interaction: state.config.interaction,
         clueProgress: { round: state.clueRound, of: state.config.cluesPerPlayer || 1, idx: state.clueIdx, total: state.clueOrder.length },
         currentTurnSeat: state.phase === 'clues' ? currentClueGiver(state) : null,
-        // recorded clues are PUBLIC by design (they were said aloud) — but they are TEXT only,
+        // recorded clues are PUBLIC by design (they were said aloud) - but they are TEXT only,
         // and the engine never colours/orders them by role, so they cannot leak who is who:
         clues: state.config.recordClues ? deepClone(state.clues) : {},
         questionIdx: state.questionIdx,
@@ -942,7 +942,7 @@
       };
     }
 
-    // Full truth — valid only AFTER a round ends (round_over / game_over).
+    // Full truth - valid only AFTER a round ends (round_over / game_over).
     function endReveal(state) {
       if (state.phase !== 'round_over' && state.phase !== 'game_over') return null;
       return {

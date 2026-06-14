@@ -1,5 +1,5 @@
 /*
- * dom-node-stub.js — a minimal NODE-based DOM (createElement/appendChild/onclick/textContent)
+ * dom-node-stub.js - a minimal NODE-based DOM (createElement/appendChild/onclick/textContent)
  * good enough to load word-ui.js and drive the real UI by walking the tree and clicking. Shared
  * by the word-deduction games' ui smoke tests. No dependencies.
  *

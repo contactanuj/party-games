@@ -1,5 +1,5 @@
 /*
- * ui-core.js — the shared pass-and-play UI for every game in the family. Reads window.GameCore
+ * ui-core.js - the shared pass-and-play UI for every game in the family. Reads window.GameCore
  * (engine) + window.PARTY_GAME (this game's definition + presets + meta). No game-specific
  * logic lives here; per-game copy comes from PARTY_GAME / window.PARTY_META.
  *
@@ -46,7 +46,7 @@
     else html = renderHome();
     app.innerHTML = html;
     bind();
-    // Only jump to the top when the LOGICAL screen changes — selecting an input or editing the
+    // Only jump to the top when the LOGICAL screen changes - selecting an input or editing the
     // setup re-renders the same screen and must preserve the player's scroll position.
     var key = screenKey();
     if (key !== ui._lastKey) { window.scrollTo(0, 0); ui._lastKey = key; }
@@ -70,14 +70,14 @@
       resume +
       '<button class="btn" data-act="new">New game</button>' +
       '<button class="btn secondary" data-act="help">How to play &amp; roles</button>' +
-      '<p class="footer-note">Pass &amp; play on one device, for ' + minPlayers() + '–' + maxPlayers() + ' players.</p>'
+      '<p class="footer-note">Pass &amp; play on one device, for ' + minPlayers() + '-' + maxPlayers() + ' players.</p>'
     );
   }
   function minPlayers() { return 3; }
   function maxPlayers() { return 10; }
 
   // =========================================================================
-  // Help / glossary (general info — no secrecy concerns)
+  // Help / glossary (general info - no secrecy concerns)
   // =========================================================================
   function renderHelp() {
     var rolesByWake = DEF.roles.slice().sort(function (a, b) {
@@ -90,7 +90,7 @@
     }).join('');
     return screen(false,
       '<div class="row"><h1>How to play</h1></div>' +
-      '<div class="panel"><p><b>Goal.</b> Everyone is secretly dealt a role. Over one night, some roles wake (in order) to peek at or swap cards — so by morning you may not be who you started as. Then everyone discusses and votes; the most-voted player is eliminated. Which team wins depends on who is eliminated.</p>' +
+      '<div class="panel"><p><b>Goal.</b> Everyone is secretly dealt a role. Over one night, some roles wake (in order) to peek at or swap cards - so by morning you may not be who you started as. Then everyone discusses and votes; the most-voted player is eliminated. Which team wins depends on who is eliminated.</p>' +
       '<p class="small muted">Your role can change during the night without you knowing. The team that wins is decided by the card you hold at the very end.</p></div>' +
       '<h2>Roles</h2>' + list +
       '<button class="btn secondary" data-act="home">Back</button>'
@@ -137,7 +137,7 @@
       // Bots
       '<label class="field">Computer players (bots)</label>' +
       '<div class="stepper panel"><button class="stepbtn" data-act="bot-">−</button><span class="val">' + (draft.botCount || 0) + '</span><button class="stepbtn" data-act="bot+">+</button></div>' +
-      '<p class="small muted">Bots fill seats and play on their own — great for practice or a small group. At least one human always plays.</p>' +
+      '<p class="small muted">Bots fill seats and play on their own - great for practice or a small group. At least one human always plays.</p>' +
 
       // Names
       '<label class="field">Player names</label>' +
@@ -167,7 +167,7 @@
       '<label class="field">Day discussion timer</label>' +
       '<div class="stepper panel"><button class="stepbtn" data-act="t-">−</button><span class="val">' + (draft.dayTimerSeconds ? draft.dayTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="t+">+</button></div>' +
 
-      // Validation + start (Start is disabled — not just an error at the bottom — until the setup is legal)
+      // Validation + start (Start is disabled - not just an error at the bottom - until the setup is legal)
       renderValidation(v) +
       '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : 'Fix the setup above to start') + '</button>'
     );
@@ -190,7 +190,7 @@
   }
   // The deck must ALWAYS hold exactly playerCount + centerCount cards (the rule of the game).
   // Villagers are the filler: adding a special role swaps out a Villager, removing one swaps it
-  // back — so the count can never be configured against the player count.
+  // back - so the count can never be configured against the player count.
   function neededCards() { return draft.playerCount + draft.centerCount; }
   function countOf(id) { return draft.roleSet.filter(function (x) { return x === id; }).length; }
   function villagerCount() { return countOf('villager'); }
@@ -222,7 +222,7 @@
     return ordered.map(function (r) {
       var c = counts[r.id] || 0;
       if (r.id === 'villager') {
-        // derived filler — shown, not directly editable
+        // derived filler - shown, not directly editable
         return '<div class="panel"><div class="row">' +
           '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">fills the deck to the right size</span></div>' +
           '<span class="val" style="min-width:30px">' + c + '</span></div></div>';
@@ -265,7 +265,7 @@
   }
 
   // =========================================================================
-  // Play — dispatch on engine phase + UI flow
+  // Play - dispatch on engine phase + UI flow
   // =========================================================================
   function renderPlay() {
     if (G.mode === 'narrator') return renderNarrator();
@@ -288,7 +288,7 @@
     }
     var p = G.players[f.idx];
     if (f.stage === 'gate') {
-      return gateScreen(p.name, 'Make sure only ' + esc(p.name) + ' can see the screen.', 'I am ' + esc(p.name) + ' — show my role', 'reveal-show');
+      return gateScreen(p.name, 'Make sure only ' + esc(p.name) + ' can see the screen.', 'I am ' + esc(p.name) + ' - show my role', 'reveal-show');
     }
     // show role privately
     var r = REG[p.dealtRole];
@@ -312,7 +312,7 @@
     if (G.config.hideRoleHolders !== false) {
       G.players.forEach(function (p) {
         if (!p.bot && !actionSeats[p.seat]) { // decoy for a human with no night action
-          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded — deterministic + unpredictable
+          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded - deterministic + unpredictable
           result.splice(pos, 0, { kind: 'decoy', seat: p.seat });
         }
       });
@@ -347,14 +347,14 @@
     var who = entry.kind === 'real' ? liveStep.name : G.players[entry.seat].name;
 
     if (f.stage === 'gate') {
-      return gateScreen(who, 'Eyes on your own screen only. (Everyone takes a turn — passing the phone reveals nothing.)',
-        'I am ' + esc(who) + ' — continue', 'night-open');
+      return gateScreen(who, 'Eyes on your own screen only. (Everyone takes a turn - passing the phone reveals nothing.)',
+        'I am ' + esc(who) + ' - continue', 'night-open');
     }
     if (entry.kind === 'decoy') {
       return screen(true,
         timerBadge() +
         '<p class="muted">Night</p><div class="big-role">…</div>' +
-        '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along — don\'t let anyone read your screen.</p>' +
+        '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along - don\'t let anyone read your screen.</p>' +
         '<button class="btn secondary" data-act="night-next">Pass on</button>'
       );
     }
@@ -371,7 +371,7 @@
         timerBadge() +
         '<p class="muted">Your secret role</p>' +
         '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
-        '<div class="panel">You carry the <b>Mark of Fear</b> — you cannot use your power tonight.</div>' +
+        '<div class="panel">You carry the <b>Mark of Fear</b> - you cannot use your power tonight.</div>' +
         '<button class="btn" data-act="act-confirm">Continue</button>'
       );
     }
@@ -440,17 +440,17 @@
     switch (f.kind) {
       case 'sawCard': return 'You saw ' + f.pos + ': ' + f.roleName + '.';
       case 'allies':
-        if (!f.allies.length) return 'You found no partners — you appear to be alone.';
+        if (!f.allies.length) return 'You found no partners - you appear to be alone.';
         return 'With you: ' + f.allies.map(function (a) { return a.name; }).join(', ') + '.';
       case 'copied': return 'You are now the ' + f.roleName + '.';
-      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' — you have joined them.';
+      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' - you have joined them.';
       case 'shielded': return 'You placed a protective shield on a card.';
       case 'placedArtifact': return 'You placed a face-down Artifact (you did not see which).';
-      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner — turned back face-down.';
-      case 'feared': return 'You carry the Mark of Fear — you could not act tonight.';
+      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner - turned back face-down.';
+      case 'feared': return 'You carry the Mark of Fear - you could not act tonight.';
       case 'mark': return 'You placed a mark.';
       case 'markMove': return 'You moved a mark.';
-      case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected — nothing happened.';
+      case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected - nothing happened.';
       case 'noop': return f.reason || 'You did nothing.';
       default: return '';
     }
@@ -464,15 +464,15 @@
       timer = '<div class="timer">' + fmt(ui.timerLeft) + '</div>';
     }
     var pv = E.publicView(G);
-    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); })
-      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' — ' + esc(r.roleName); }));
+    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' - ' + esc(r.roleName); })
+      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' - ' + esc(r.roleName); }));
     var revealed = revLines.length ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + revLines.join('<br>') + '</div>' : '';
     return screen(true,
       '<h1>Morning</h1>' +
-      '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +
+      '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night - claim roles, accuse, defend. Remember: cards may have moved.</p>' +
       revealed +
       timer +
-      '<button class="btn" data-act="to-vote">Everyone ready — vote</button>' +
+      '<button class="btn" data-act="to-vote">Everyone ready - vote</button>' +
       '<button class="btn ghost" data-act="recheck">Privately re-check my role</button>'
     );
   }
@@ -489,7 +489,7 @@
     }
     var p = G.players[f.humans[f.idx]];
     if (f.stage === 'gate') {
-      return gateScreen(p.name, 'Cast your vote in secret — all votes reveal together.', 'I am ' + esc(p.name) + ' — vote', 'vote-open');
+      return gateScreen(p.name, 'Cast your vote in secret - all votes reveal together.', 'I am ' + esc(p.name) + ' - vote', 'vote-open');
     }
     ui.curSelf = p.seat;
     return screen(false,
@@ -537,7 +537,7 @@
       var line = f.lines[f.idx];
       var isLast = f.idx >= f.lines.length - 1;
       return screen(true,
-        '<p class="muted">Narrator — read aloud</p>' +
+        '<p class="muted">Narrator - read aloud</p>' +
         '<div class="script-line ' + (line.kind === 'all' ? 'all' : '') + '" style="font-size:22px">' + esc(line.text) + '</div>' +
         '<div class="row"><button class="btn secondary" data-act="narr-prev" ' + (f.idx === 0 ? 'disabled' : '') + '>Back</button>' +
         '<button class="btn" data-act="narr-next">' + (isLast ? 'Go to discussion' : 'Next') + '</button></div>' +
@@ -547,7 +547,7 @@
     if (f.stage === 'day') {
       var timer = G.config.dayTimerSeconds ? '<div class="timer">' + fmt(ui.timerLeft == null ? (ui.timerLeft = G.config.dayTimerSeconds) : ui.timerLeft) + '</div>' : '';
       return screen(true,
-        '<h1>Discuss</h1><p class="muted">Talk it out, then vote together — point on three.</p>' + timer +
+        '<h1>Discuss</h1><p class="muted">Talk it out, then vote together - point on three.</p>' + timer +
         '<button class="btn" data-act="narr-vote">Time to vote</button>'
       );
     }
@@ -730,7 +730,7 @@
     G = E.newGame(G.config, seed); ui = {}; save(); render();
   }
 
-  // Re-check own role during the day — gated per player, reveals only to that player.
+  // Re-check own role during the day - gated per player, reveals only to that player.
   function openRecheck() {
     ui.recheck = { idx: 0, stage: 'gate' };
     view = 'play';

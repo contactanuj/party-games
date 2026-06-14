@@ -1,5 +1,5 @@
 /*
- * ui.werewolf.smoke.test.js — loads the REAL shared UI against a DOM stub and drives a full
+ * ui.werewolf.smoke.test.js - loads the REAL shared UI against a DOM stub and drives a full
  * pass-and-play game by clicking. Asserts the INFORMATION BOUNDARY: no role name ever appears
  * on a shared/observable screen (handoff gates, decoy night screens, the day screen, vote
  * screens). Private screens (your reveal, your night action, the post-game reveal) may show
@@ -109,7 +109,7 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
-console.log('\n# config integrity — deck always = players + center; cannot be set against the count');
+console.log('\n# config integrity - deck always = players + center; cannot be set against the count');
 (function () {
   function deck() { var m = html().match(/(\d+) \/ (\d+) cards/); return m ? { have: +m[1], need: +m[2] } : null; }
   clickAct('new');
@@ -128,13 +128,12 @@ console.log('\n# config integrity — deck always = players + center; cannot be 
   clickAct('home');
 })();
 
-console.log('\n# UI smoke — full pass-and-play games, no-leak assertions');
+console.log('\n# UI smoke - full pass-and-play games, no-leak assertions');
 playOneGame('game A');
 playOneGame('game B');
 playOneGame('game C (3 bots)', 3);   // bot players fill seats; night/vote auto-resolve for them
 
-// Narrator mode: switch the draft to narrator, start, and walk the script (no leaks asserted —
-// the script names roles aloud by design, but it shows no player's secret identity).
+// Narrator mode: switch the draft to narrator, start, and walk the script (no leaks asserted - // the script names roles aloud by design, but it shows no player's secret identity).
 console.log('\n# Narrator mode walkthrough');
 (function () {
   clickAct('new');

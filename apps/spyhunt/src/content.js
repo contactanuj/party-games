@@ -1,10 +1,10 @@
 /*
- * content.js (Spy Hunt) — built-in location packs, read by the shared word engine + UI.
+ * content.js (Spy Hunt) - built-in location packs, read by the shared word engine + UI.
  *
  * Model 'locationRoles': everyone at the table shares ONE location and each gets a personal role
  * there; the Spy gets neither and must blend in by asking questions. type:'locations'; each item
  * is { name, roles:[7] }. During play the master list of the active pack's location NAMES is shown
- * publicly (as in the physical game) so everyone can phrase clever questions — that is NOT a leak.
+ * publicly (as in the physical game) so everyone can phrase clever questions - that is NOT a leak.
  *
  * Three non-overlapping themed packs of 10 (30 classic locations). A round draws ONE pack, so the
  * Spy's candidate list is exactly that pack's 10 locations. Original wording; usable as-is.

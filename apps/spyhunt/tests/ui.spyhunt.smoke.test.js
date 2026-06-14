@@ -1,5 +1,5 @@
 /*
- * ui.spyhunt.smoke.test.js — loads the REAL word-ui.js + Spy Hunt in a node DOM stub and drives
+ * ui.spyhunt.smoke.test.js - loads the REAL word-ui.js + Spy Hunt in a node DOM stub and drives
  * a round through the 'play' interaction: reveal (gated) -> play (accuse) -> tally -> round_over.
  * Asserts the location never leaks onto a shared screen and the spy's card shows no location.
  */

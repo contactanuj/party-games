@@ -1,11 +1,11 @@
 /*
- * content.js (Imposter) — the built-in content library, read by the shared word engine + UI.
+ * content.js (Imposter) - the built-in content library, read by the shared word engine + UI.
  *
  * Two pack TYPES feed two variants of the same game (selected by config.contentModel):
  *   type:'words'  -> "Classic / Mr. White": every Crew member shares ONE word; the Imposter
  *                    gets nothing and must fake a matching one-word clue.
  *   type:'pairs'  -> "Undercover": Crew get word A, the Imposter gets the CLOSE word B and may
- *                    not realise they differ — clues from both sides sound plausible.
+ *                    not realise they differ - clues from both sides sound plausible.
  *
  * Item shorthand (normalised by the engine):
  *   'Pizza'                      a plain word (bots fall back to a generic clue)
@@ -13,7 +13,7 @@
  *   { a:'Coffee', b:'Tea' }      a close pair for Undercover (b is the Imposter's word)
  *
  * `c` (clue hints) exist ONLY so offline bots can give a believable one-word clue. They are
- * never shown to humans and never enter publicState — so they cannot leak anything.
+ * never shown to humans and never enter publicState - so they cannot leak anything.
  */
 (function (root, factory) {
   var C = factory();

@@ -1,5 +1,5 @@
 /*
- * make-icon.js (Spy Hunt) — renders assets/icon.png (1024x1024), zero deps.
+ * make-icon.js (Spy Hunt) - renders assets/icon.png (1024x1024), zero deps.
  * A clean magnifying glass (investigate / find the spy) in brand amber on warm noir, inside a
  * thin ring. Run: node scripts/make-icon.js
  */

@@ -1,5 +1,5 @@
 /*
- * engine.imposter.test.js — drives the REAL Imposter game.js + content.js through the shared
+ * engine.imposter.test.js - drives the REAL Imposter game.js + content.js through the shared
  * word engine. Dependency-free Node (run: node tests/engine.imposter.test.js).
  *
  * Covers both variants (Classic 'word' + Undercover 'wordPair'), the no-leak boundary with the

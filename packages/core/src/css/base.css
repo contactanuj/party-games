@@ -1,7 +1,7 @@
-/* base.css — shared theme. Colors come from CSS custom properties each game overrides in
+/* base.css - shared theme. Colors come from CSS custom properties each game overrides in
  * theme.css (--bg, --panel, --text, --muted, --accent, --danger, --good ...). No game-specific
  * colors here, and CRUCIALLY no role/team-coded colors that could leak identity on a shared
- * screen — role coloring is never used in public surfaces. */
+ * screen - role coloring is never used in public surfaces. */
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; height: 100%; }
@@ -79,7 +79,7 @@ label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size
 .err { background: rgba(255,80,80,.12); border: 1px solid var(--danger); color: #ffd9d9; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
 .warn { background: rgba(240,190,70,.10); border: 1px solid rgba(240,190,70,.5); color: #ffe9b8; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
 
-/* Handoff gate — the secrecy screen. Deliberately neutral; reveals nothing. */
+/* Handoff gate - the secrecy screen. Deliberately neutral; reveals nothing. */
 .gate { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; }
 .gate .who { font-size: 28px; font-weight: 800; }
 .gate .hint { color: var(--muted); max-width: 320px; }

@@ -1,5 +1,5 @@
 /*
- * png-canvas.js — a tiny, dependency-free raster + PNG encoder shared by every game's icon
+ * png-canvas.js - a tiny, dependency-free raster + PNG encoder shared by every game's icon
  * generator. No canvas/sharp/etc; just a Float buffer, SDF helpers for crisp antialiased shapes,
  * and a built-in zlib PNG writer. Each app's scripts/make-icon.js draws its emblem with these.
  */

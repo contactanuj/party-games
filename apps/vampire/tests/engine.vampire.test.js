@@ -1,7 +1,7 @@
 /*
- * engine.vampire.test.js — the Marks system + Vampire win conditions on the shared engine:
+ * engine.vampire.test.js - the Marks system + Vampire win conditions on the shared engine:
  * clarity init, vampire-team win, Mark of Fear (skips the night action), Lovers death-link,
- * Assassin solo win, Disease disqualification, Renfield, Master vote-protect — plus fuzz,
+ * Assassin solo win, Disease disqualification, Renfield, Master vote-protect - plus fuzz,
  * determinism, and the no-leak boundary. Run: node tests/engine.vampire.test.js
  */
 'use strict';

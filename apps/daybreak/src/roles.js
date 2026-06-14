@@ -1,5 +1,5 @@
 /*
- * roles.js (Daybreak) — the base roles plus Daybreak's signature roles and token mechanics:
+ * roles.js (Daybreak) - the base roles plus Daybreak's signature roles and token mechanics:
  *   Sentinel (shield token), Alpha Wolf (center-werewolf card), Mystic Wolf, Dream Wolf,
  *   Apprentice Seer, Paranormal Investigator (joins what it sees), Witch (center-swap),
  *   Village Idiot (rotate the table), Revealer (face-up reveal), Curator (Artifact tokens),
@@ -19,16 +19,16 @@
 
   var ARTIFACT_BAG = ['claw', 'cudgel', 'brand', 'void'];
   var ARTIFACT_DESC = {
-    claw: 'Claw of the Werewolf — you are now a Werewolf.',
-    cudgel: 'Cudgel of the Tanner — you are now a Tanner (you win only if you die).',
-    brand: 'Brand of the Villager — you are now a plain Villager.',
-    void: 'Void of Nothingness — no effect.'
+    claw: 'Claw of the Werewolf - you are now a Werewolf.',
+    cudgel: 'Cudgel of the Tanner - you are now a Tanner (you win only if you die).',
+    brand: 'Brand of the Villager - you are now a plain Villager.',
+    void: 'Void of Nothingness - no effect.'
   };
 
   var daybreak = [
     {
       id: 'sentinel', name: 'Sentinel', team: 'village', wake: 0, maxCopies: 1, optional: true,
-      blurb: 'Place a shield on another player\'s card — it cannot be viewed or moved all night.',
+      blurb: 'Place a shield on another player\'s card - it cannot be viewed or moved all night.',
       prompt: 'You may shield one other player\'s card.',
       narration: { open: 'Sentinel, wake up. You may place a shield on any other player\'s card.', close: 'Sentinel, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Shield whose card? (or skip)', exclude: [ctx.self], optional: true }]; },
@@ -64,7 +64,7 @@
 
     {
       id: 'dream_wolf', name: 'Dream Wolf', team: 'werewolf', werewolf: true, wake: null, maxCopies: 1,
-      blurb: 'You are a Werewolf, but you sleep through the night — you do not learn your pack (they know you).'
+      blurb: 'You are a Werewolf, but you sleep through the night - you do not learn your pack (they know you).'
     },
 
     {
@@ -135,7 +135,7 @@
 
     {
       id: 'revealer', name: 'Revealer', team: 'village', wake: 10, maxCopies: 1, optional: true,
-      blurb: 'Flip one player\'s card face-up for all to see — unless it is a Werewolf or Tanner, which you flip back down.',
+      blurb: 'Flip one player\'s card face-up for all to see - unless it is a Werewolf or Tanner, which you flip back down.',
       prompt: 'You may flip one card face-up for everyone.',
       narration: { open: 'Revealer, wake up. You may turn one player\'s card face-up; if it is a Werewolf or Tanner, turn it back face-down.', close: 'Revealer, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Flip whose card? (or skip)', exclude: [ctx.self], optional: true }]; },
@@ -155,7 +155,7 @@
       inputs: function () { return [{ id: 'target', type: 'pickPlayer', label: 'Place an Artifact on whose card? (or skip)', allowSelf: true, optional: true }]; },
       act: function (ctx, inputs) {
         if (inputs.target == null) { ctx.noop('Curator placed no Artifact.'); return; }
-        var art = ctx.rngPick(ARTIFACT_BAG);                    // chosen blindly — even you don't know which
+        var art = ctx.rngPick(ARTIFACT_BAG);                    // chosen blindly - even you don't know which
         ctx.placeToken('artifact:' + art, ctx.seatPos(inputs.target));
         ctx.learn({ kind: 'placedArtifact' });
       }

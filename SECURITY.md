@@ -8,7 +8,7 @@ classes of issue seriously:
 
 A bug where a **shared/observable screen reveals hidden information** (who the Imposter/Spy/Outsider
 is, the secret word, a player's location/role, or any role-coded colour/icon) is treated as a
-**high-severity** defect — it ruins the game. If you find one, please report it (see below) with the
+**high-severity** defect - it ruins the game. If you find one, please report it (see below) with the
 game, the screen, and steps to reproduce. The UI smoke tests assert against this class of bug;
 a regression test should accompany the fix.
 

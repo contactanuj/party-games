@@ -1,4 +1,4 @@
-# Reusable build brief — pass-and-play social-deduction party games
+# Reusable build brief - pass-and-play social-deduction party games
 
 A consolidated, systematic prompt distilled from every requirement given while building the
 Werewolf/Daybreak/Vampire/Alien set. Paste this (and fill the `<<…>>` blanks) to replicate the
@@ -17,7 +17,7 @@ separate APK / store product**.
 ### 1. Research the real rules first
 - Find the official rulebooks/guides (PDFs, wikis) for each game. Read them and extract a
   complete, implementation-ready spec: every role/card, exact action, turn/phase order, and all
-  win conditions and edge cases. Do not guess — capture the real mechanics precisely.
+  win conditions and edge cases. Do not guess - capture the real mechanics precisely.
 - Treat the source material as **reference only**. These are **my own original games**: write all
   rules/role/narration text in original wording, ship **no copied text or artwork**, and use **no
   third-party brand, product, or company names anywhere** (code, comments, package ids, docs,
@@ -28,10 +28,10 @@ separate APK / store product**.
 - One monorepo (npm workspaces). A shared `@core` package holds the **pure engine** (no DOM/
   network), shared **UI primitives**, and **build tooling** (inliner + guards + app.json/icon
   generators). Each game is a thin app that authors only its roles/presets/theme and reuses core.
-- Engine must be **deterministic** (one seeded PRNG on `state.rngState` — the ONLY randomness;
+- Engine must be **deterministic** (one seeded PRNG on `state.rngState` - the ONLY randomness;
   no `Math.random`/`Date` in the engine), **JSON-serializable** state, and **transport-agnostic**
   so it can be unit-tested in Node and later reused for an online version.
-- The games may share an engine internally, but as **products they are separate** — no cross-game
+- The games may share an engine internally, but as **products they are separate** - no cross-game
   mixing in gameplay.
 
 ### 3. Maximum configurable, but VALIDATED
@@ -44,12 +44,12 @@ separate APK / store product**.
   "start/continue" control** when the setup is invalid (don't just show an error at the bottom).
   Make the required card/role count obvious inline.
 
-### 4. THE INFORMATION BOUNDARY (most important — never leak hidden data)
+### 4. THE INFORMATION BOUNDARY (most important - never leak hidden data)
 - Strictly separate **public state** from **per-seat private knowledge**. A `publicView(state)`
   must expose only public data (names, alive/phase/progress) and **never** a role/team/card.
-- **No shared/observable screen may reveal hidden data** — and crucially **no role- or team-coded
+- **No shared/observable screen may reveal hidden data** - and crucially **no role- or team-coded
   colors or icons anywhere a non-owner can see them** (this exact bug shipped once: icons/colors
-  revealed roles on the general screen and the recheck-roles list — never again). The theme must
+  revealed roles on the general screen and the recheck-roles list - never again). The theme must
   not encode any hidden game data.
 - Private info appears **only behind a per-player handoff gate**. During the secret phase, hand
   the device to **every** player (real actors + indistinguishable decoys) so observers can't even
@@ -71,7 +71,7 @@ separate APK / store product**.
 - **Status bar / safe areas:** content must never sit under the device status bar/notch (opaque
   status bar reserving its space + `env(safe-area-inset-*)` padding).
 - **No jump-to-top on input:** selecting an option / typing must **not** scroll the screen back to
-  the top — preserve scroll position on in-screen re-renders.
+  the top - preserve scroll position on in-screen re-renders.
 - **Roles are timer-based** (configurable per-turn countdown, auto-advances on expiry) **and**
   always allow a **private re-check** of your own role/info (like Wink Killer) behind a gate.
 - Helpful + engaging: recommended presets per player count, in-app role glossary, contextual
@@ -84,8 +84,8 @@ separate APK / store product**.
   termination, invariants, card conservation, no throws), a **win-condition matrix**
   (deaths × roles-in-play ⇒ expected winner set, including simultaneous/solo wins), **determinism +
   replay**, **JSON round-trip**, and **no-leak** UI smoke tests that drive the real UI.
-- After building, **adversarially scrutinize the whole implementation** — logic flows, every
-  config combination, and the information boundary — to ensure nothing is confusing or breaking.
+- After building, **adversarially scrutinize the whole implementation** - logic flows, every
+  config combination, and the information boundary - to ensure nothing is confusing or breaking.
   **Re-test everything** after each change with this intuition applied everywhere.
 
 ### 9. Delivery

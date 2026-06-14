@@ -1,5 +1,5 @@
 /*
- * core-engine.js — shared rules engine for the social-deduction "night / vote / reveal"
+ * core-engine.js - shared rules engine for the social-deduction "night / vote / reveal"
  * family (Werewolf, Daybreak, Vampire, Alien). PURE: no DOM, no network.
  *
  * Design tenets (the correctness + secrecy backbone):
@@ -17,7 +17,7 @@
  *    role/team/card. Private knowledge is per-seat and surfaced only via privateReveal(seat).
  *    The UI must render shared screens from publicView() exclusively.
  *
- * The engine hardcodes NO role names — each game passes a role registry (data objects). This
+ * The engine hardcodes NO role names - each game passes a role registry (data objects). This
  * file implements the framework + the base Werewolf-family win/vote rules; later games add
  * roles (which can carry their own win contributors / vote modifiers) and a few new mechanics
  * (tokens, marks) via the seams provided here.
@@ -30,7 +30,7 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Seeded PRNG (mulberry32) — deterministic + serialized via state.rngState.
+  // Seeded PRNG (mulberry32) - deterministic + serialized via state.rngState.
   // ---------------------------------------------------------------------------
   function nextRand(state) {
     var t = (state.rngState = (state.rngState + 0x6D2B79F5) >>> 0);
@@ -127,7 +127,7 @@
 
       var pc = c.playerCount;
       if (!(pc >= 3)) errors.push('Need at least 3 players.');
-      if (pc > 10) warnings.push('More than 10 players is outside the tested range — balance is not guaranteed.');
+      if (pc > 10) warnings.push('More than 10 players is outside the tested range - balance is not guaranteed.');
 
       var roleSet = c.roleSet || [];
       var center = c.centerCount == null ? CENTER : c.centerCount;
@@ -162,14 +162,14 @@
         var nm = (names[i] || '').trim();
         if (!nm) { errors.push('Every player needs a name (player ' + (i + 1) + ' is blank).'); continue; }
         var key = nm.toLowerCase();
-        if (seen[key]) warnings.push('Two players are both named "' + nm + '" — they will be hard to tell apart.');
+        if (seen[key]) warnings.push('Two players are both named "' + nm + '" - they will be hard to tell apart.');
         seen[key] = true;
       }
 
       // At least one waking-or-meaningful tension: warn if there is no way for the village to win
       // or no werewolf-team presence possible (purely informational; still playable).
       var anyWolfPossible = roleSet.some(isWerewolfRole);
-      if (!anyWolfPossible) warnings.push('No Werewolf is in the card set — the village can only win by no one dying.');
+      if (!anyWolfPossible) warnings.push('No Werewolf is in the card set - the village can only win by no one dying.');
 
       // Dependency warnings declared by roles (e.g. Insomniac wants a swapper; Mason wants 2).
       def.roles.forEach(function (r) {
@@ -241,7 +241,7 @@
           seat: s,
           name: config.playerNames[s],
           number: s + 1,                 // stable "player number" (Alien addressing)
-          dealtRole: card.role,          // FROZEN — drives wake order
+          dealtRole: card.role,          // FROZEN - drives wake order
           dealtCardId: card.id,
           copiedRole: null,              // Doppelgänger/Copycat acquired acting-identity
           alive: true,
@@ -255,7 +255,7 @@
       }
 
       // Reserved cards: a role in the set can require an EXTRA fixed card in its own slot
-      // (e.g. the Alpha Wolf's "center werewolf" — a guaranteed Werewolf, not shuffled).
+      // (e.g. the Alpha Wolf's "center werewolf" - a guaranteed Werewolf, not shuffled).
       var reservedSet = {};
       config.roleSet.forEach(function (id) { if (REG[id] && REG[id].reservedCenter) reservedSet[id] = REG[id].reservedCenter; });
       var ri = 0;
@@ -516,7 +516,7 @@
       }
     }
 
-    // helpers() — a small subset of ctx for engine-internal/per-game hooks (no acting seat).
+    // helpers() - a small subset of ctx for engine-internal/per-game hooks (no acting seat).
     function helpers(state) {
       return {
         REG: REG, role: role, teamOfRole: teamOfRole,
@@ -623,7 +623,7 @@
         var insertAt;
         if (REG[ins.roleId].copyImmediate) {
           // Immediate copies (Seer/Robber/Troublemaker/Drunk) act right now, as the very next
-          // step — exactly as the Doppelgänger does at the table (cursor already points past the
+          // step - exactly as the Doppelgänger does at the table (cursor already points past the
           // Doppelgänger's own step, so `cursor` is the next-to-run slot).
           insertAt = state.cursor;
         } else {
@@ -802,7 +802,7 @@
     }
 
     // =========================================================================
-    // Win resolution — base Werewolf-family rules + composable per-role contributors.
+    // Win resolution - base Werewolf-family rules + composable per-role contributors.
     // Multiple teams can win. Returns result on state.result.
     // =========================================================================
     function resolveOutcome(state) {
@@ -839,7 +839,7 @@
       if (wwSeats.length === 0 && minionSeats.length > 0) {
         var nonMinionDied = deaths.some(function (d) { return minionSeats.indexOf(d) === -1; });
         if (nonMinionDied) werewolfWin = true;
-        else if (someoneDied) villageWin = true; // the village lynched only the Minion — they win
+        else if (someoneDied) villageWin = true; // the village lynched only the Minion - they win
       }
 
       // ---- tanner (solo): wins iff a tanner dies; suppresses the werewolf win unless a
@@ -861,7 +861,7 @@
         if (verdict && verdict.suppress) delete winners[verdict.suppress];
       });
 
-      // Disqualifications (e.g. Disease: a voter for the marked player cannot win) — flag pass.
+      // Disqualifications (e.g. Disease: a voter for the marked player cannot win) - flag pass.
       var dq = {};
       collectDisqualifiers(state).forEach(function (d) { d(wc, dq); });
 
@@ -926,7 +926,7 @@
     }
 
     // =========================================================================
-    // Bot play — computer-controlled seats. Night actions are chosen legally (random via the
+    // Bot play - computer-controlled seats. Night actions are chosen legally (random via the
     // engine PRNG, so deterministic + replayable); votes use a light heuristic from the bot's
     // OWN private knowledge (never from anything a human couldn't also deduce).
     // =========================================================================
@@ -1003,7 +1003,7 @@
     }
 
     // =========================================================================
-    // INFORMATION BOUNDARY — what the shared (public) screen may render.
+    // INFORMATION BOUNDARY - what the shared (public) screen may render.
     // Returns NOTHING that could identify a role/team/card before the end.
     // =========================================================================
     function publicView(state) {
@@ -1059,7 +1059,7 @@
       };
     }
 
-    // Full truth — only valid AFTER the game ends (used by the end-of-night reveal/recap).
+    // Full truth - only valid AFTER the game ends (used by the end-of-night reveal/recap).
     function endReveal(state) {
       if (state.phase !== 'end') return null;
       return {

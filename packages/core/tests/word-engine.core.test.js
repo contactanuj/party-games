@@ -1,5 +1,5 @@
 /*
- * word-engine.core.test.js — exercises the shared word-deduction engine across all three
+ * word-engine.core.test.js - exercises the shared word-deduction engine across all three
  * content models (word / wordPair / locationRoles) and all interactions (clues/questions/play).
  * Dependency-free Node (run: node tests/word-engine.core.test.js).
  *
@@ -117,7 +117,7 @@ section('content models: secret assignment + reveal');
 })();
 
 // ---------------------------------------------------------------------------
-section('INFORMATION BOUNDARY — no leaks on public surfaces');
+section('INFORMATION BOUNDARY - no leaks on public surfaces');
 (function () {
   var s = IMP.newGame(IMP.defaultConfig(6), WORD_LIB, 5);
   IMP.beginInteraction(s);
@@ -129,7 +129,7 @@ section('INFORMATION BOUNDARY — no leaks on public surfaces');
   IMP.publicState(s).players.forEach(function (row) {
     ok(Object.keys(row).sort().join(',') === 'bot,name,number,seat', 'public player row carries only seat/name/number/bot');
   });
-  // revealFor MUST be shape-identical for outsider vs insider (same key set) — no length leak.
+  // revealFor MUST be shape-identical for outsider vs insider (same key set) - no length leak.
   var keysOut = null, keysIn = null;
   s.players.forEach(function (p) {
     var k = Object.keys(IMP.revealFor(s, p.seat)).sort().join(',');

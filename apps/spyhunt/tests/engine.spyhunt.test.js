@@ -1,5 +1,5 @@
 /*
- * engine.spyhunt.test.js — drives the REAL Spy Hunt game + locations through the shared engine.
+ * engine.spyhunt.test.js - drives the REAL Spy Hunt game + locations through the shared engine.
  * Covers: location/role assignment, the no-leak boundary (location never public), the 'play'
  * interaction with mid-round unanimous accusation, the Spy's voluntary stop-and-guess, the
  * "caught Spy gets NO extra guess" rule, and the classic 1/2/2/4/4 + accuser-bonus scoring.

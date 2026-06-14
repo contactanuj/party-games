@@ -1,19 +1,19 @@
 /*
- * word-ui.js — the shared pass-and-play UI for the word-deduction family (Imposter, Out of the
+ * word-ui.js - the shared pass-and-play UI for the word-deduction family (Imposter, Out of the
  * Loop, Spyfall). Reads window.WordCore + window.WORD_GAME + window.WORD_CONTENT and renders the
  * whole game into #app. No framework; plain DOM. One UI, three games, by configuration.
  *
  * ============================== SECRECY INVARIANTS ==============================
- * This game is ruined the instant a SHARED screen betrays who the outsider is — exactly the class
+ * This game is ruined the instant a SHARED screen betrays who the outsider is - exactly the class
  * of bug we hit in Wink Killer (role-coded icons/colours leaking on the all-visible screen AND on
  * the recheck list). So this UI obeys hard rules, asserted in tests:
  *   1. Every SHARED screen (lobby, turn order, clue recap, vote list, timer, scoreboard) is built
- *      ONLY from engine.publicState() — which contains no per-seat role/secret data — and renders
+ *      ONLY from engine.publicState() - which contains no per-seat role/secret data - and renders
  *      every player row identically. No role-derived colour, icon, ordering, or emphasis. Ever.
  *   2. A secret is shown ONLY on the neutral .gate handoff, to ONE player who tapped to confirm
  *      it is them, and the gate looks structurally identical for outsider and insider (same
  *      colours/lay-out/buttons; only the words differ). No red "you are the imposter" screen.
- *   3. "Re-check my word" is the same gated single-player handoff — NEVER a list of everyone.
+ *   3. "Re-check my word" is the same gated single-player handoff - NEVER a list of everyone.
  *   4. The full truth (who was who) appears only AFTER the round ends (engine.endReveal()).
  * If you add a screen, run it past these four rules.
  * ===============================================================================
@@ -89,7 +89,7 @@
   function render() {
     clear();
     // Always start a freshly-rendered screen at the (safe-area-padded) top. This keeps the header
-    // clear of the status bar after any action — including when a text input opened the keyboard
+    // clear of the status bar after any action - including when a text input opened the keyboard
     // and the page had scrolled. Combined with Android's 'resize' keyboard mode, focusing an input
     // never pushes the UI up under the status bar.
     try { window.scrollTo(0, 0); } catch (e) {}
@@ -152,7 +152,7 @@
     add(s, fieldLabel('Computer players (fill empty seats)'));
     add(s, stepper(UI.config.botCount || 0, 0, UI.config.playerCount - 1, function (v) { UI.config.botCount = v; render(); }));
     if (GAME.botsImpractical && UI.config.botCount > 0) {
-      add(s, note('warn', 'This is a talking game — computer players can fill seats and vote, but they cannot truly bluff. Best for learning the flow.'));
+      add(s, note('warn', 'This is a talking game - computer players can fill seats and vote, but they cannot truly bluff. Best for learning the flow.'));
     }
 
     // Validate + start
@@ -221,7 +221,7 @@
     if (c.scoring && show('winTarget')) add(s, intRow(L('winTarget', 'Points to win the match'), c.winTarget, 1, 20, function (v) { c.winTarget = v; }));
     if (show('dealerRotation')) add(s, selectRow(L('dealerRotation', 'Who starts next round'), c.dealerRotation, [['clockwise', 'Next player'], ['random', 'Random'], ['outsider', 'The ' + OUT]], function (v) { c.dealerRotation = v; }));
 
-    // Content packs (shared, no secrets — pack NAMES are public)
+    // Content packs (shared, no secrets - pack NAMES are public)
     var packsForModel = LIB.filter(function (p) { return engine.packMatchesConfig(p, withAllPacks(c)); });
     if (packsForModel.length > 1) {
       add(s, E('h2', null, 'Content packs'));
@@ -312,21 +312,21 @@
     var order = UI.reveal.order, idx = UI.reveal.idx;
     if (idx >= order.length) { engine.beginInteraction(UI.g); afterInteractionAutostep(); return render(); }
     var seat = order[idx];
-    // bot seats are not handed the device — they "know" their secret internally
+    // bot seats are not handed the device - they "know" their secret internally
     if (engine.isBot(UI.g, seat)) { UI.reveal.idx++; return render(); }
 
     var s = screen(true);
     if (!UI.reveal.shown) {
-      // PASS screen — shared-safe (a name only)
+      // PASS screen - shared-safe (a name only)
       add(s, E('div', 'pill', 'Reveal ' + (countHumansBefore(order, idx) + 1) + ' of ' + countHumans(order)));
       var gate = E('div', 'gate');
       add(gate, E('div', 'hint', 'Pass the phone to'));
       add(gate, E('div', 'who', engine.nameOf(UI.g, seat)));
       add(gate, E('div', 'hint', 'Only ' + engine.nameOf(UI.g, seat) + ' should look. Everyone else, eyes up.'));
       add(s, gate);
-      add(s, btn("I'm " + engine.nameOf(UI.g, seat) + " — show me", '', function () { UI.reveal.shown = true; SND.play('reveal'); render(); }));
+      add(s, btn("I'm " + engine.nameOf(UI.g, seat) + " - show me", '', function () { UI.reveal.shown = true; SND.play('reveal'); render(); }));
     } else {
-      // SECRET screen — identical chrome for outsider and insider
+      // SECRET screen - identical chrome for outsider and insider
       add(s, secretCard(engine.revealFor(UI.g, seat)));
       add(s, btn('Hide & pass on', '', function () { UI.reveal.shown = false; UI.reveal.idx++; SND.play('pass'); render(); }));
       if (UI.config.revealSeconds > 0) add(s, E('div', 'footer-note reveal-countdown', 'Auto-hiding in ' + UI.config.revealSeconds + 's'));
@@ -339,26 +339,26 @@
   function countHumans(order) { var n = 0; order.forEach(function (st) { if (!engine.isBot(UI.g, st)) n++; }); return n; }
   function countHumansBefore(order, idx) { var n = 0; for (var i = 0; i < idx; i++) if (!engine.isBot(UI.g, order[i])) n++; return n; }
 
-  // The one place a secret is shown. SAME layout for everyone — no role colour/icon.
+  // The one place a secret is shown. SAME layout for everyone - no role colour/icon.
   function secretCard(info) {
     var wrap = E('div', 'gate');
     add(wrap, E('div', 'hint', info.name));
     if (info.contentModel === 'locationRoles') {
       if (info.isOutsider) {
         add(wrap, E('div', 'big-role', 'You are the ' + OUT));
-        add(wrap, E('div', 'hint', "You don't know the location. Blend in, work out where everyone is — or guess it."));
+        add(wrap, E('div', 'hint', "You don't know the location. Blend in, work out where everyone is - or guess it."));
       } else {
         add(wrap, E('div', 'hint', 'Location'));
         add(wrap, E('div', 'big-role', info.location));
-        add(wrap, E('div', 'pill', 'Your role: ' + (info.roleAtLocation || '—')));
+        add(wrap, E('div', 'pill', 'Your role: ' + (info.roleAtLocation || '-')));
       }
     } else if (info.word != null) {
       // The seat HAS a word. This covers every insider AND the Undercover outsider (who gets a
       // close word and is NOT told they are the odd one out). The card is byte-identical for both,
-      // so the reveal itself can never betray the role — you must deduce it from the clues.
+      // so the reveal itself can never betray the role - you must deduce it from the clues.
       add(wrap, E('div', 'hint', 'Your secret word'));
       add(wrap, E('div', 'big-role', info.word));
-      add(wrap, E('div', 'hint', 'Give a one-word clue that proves you know it — without handing it to the ' + OUT + '.'));
+      add(wrap, E('div', 'hint', 'Give a one-word clue that proves you know it - without handing it to the ' + OUT + '.'));
       if (info.hint) add(wrap, E('div', 'pill', 'Category: ' + info.hint));
     } else {
       // The seat has NO word -> it is the outsider (Classic Imposter / Out of the Loop / blind).
@@ -464,7 +464,7 @@
     add(s, E('h2', null, 'Question ' + (qIdx + 1) + ' of ' + (UI.config.questionsPerRound || 1)));
     var card = E('div', 'panel'); add(card, E('p', null, question)); add(s, card);
     add(s, E('p', 'muted center-text', 'Going around from ' + engine.nameOf(UI.g, UI.g.dealerSeat) + ', everyone answers out loud (no saying the word!).'));
-    add(s, btn('Everyone answered — next', '', function () { engine.nextQuestion(UI.g); SND.play('tap'); render(); }));
+    add(s, btn('Everyone answered - next', '', function () { engine.nextQuestion(UI.g); SND.play('tap'); render(); }));
     add(s, recheckBtn());
     app.appendChild(s);
   }
@@ -495,10 +495,10 @@
     }
 
     add(s, E('div', 'divider'));
-    add(s, E('p', 'muted center-text', 'Ask each other questions. Prove you belong — without giving the place away.'));
+    add(s, E('p', 'muted center-text', 'Ask each other questions. Prove you belong - without giving the place away.'));
     add(s, btn('Accuse someone', 'secondary', function () { UI.accuse = { active: true, accused: null, confirmWho: null }; render(); }));
-    if (UI.config.allowOutsiderEarlyGuess) add(s, btn('I am the ' + OUT + ' — stop & guess', 'ghost', function () { spyGuessFlow(); }));
-    add(s, btn('Time is up — go to vote', '', function () { engine.beginVote(UI.g); render(); }));
+    if (UI.config.allowOutsiderEarlyGuess) add(s, btn('I am the ' + OUT + ' - stop & guess', 'ghost', function () { spyGuessFlow(); }));
+    add(s, btn('Time is up - go to vote', '', function () { engine.beginVote(UI.g); render(); }));
     add(s, recheckBtn());
     app.appendChild(s);
   }
@@ -517,11 +517,11 @@
       add(s, btn('Back', 'ghost', function () { UI.accuse.confirmWho = null; render(); }));
     } else {
       add(s, E('p', 'center-text', engine.nameOf(UI.g, UI.accuse.confirmWho) + ' accuses ' + engine.nameOf(UI.g, UI.accuse.accused) + '. Everyone else must agree.'));
-      add(s, btn('Everyone agrees — reveal', 'danger', function () {
+      add(s, btn('Everyone agrees - reveal', 'danger', function () {
         engine.callAccusation(UI.g, UI.accuse.confirmWho, UI.accuse.accused, true);
         resetAccuse(); SND.play('vote'); render();
       }));
-      add(s, btn('No agreement — keep playing', 'ghost', function () {
+      add(s, btn('No agreement - keep playing', 'ghost', function () {
         engine.callAccusation(UI.g, UI.accuse.confirmWho, UI.accuse.accused, false);
         resetAccuse(); render();
       }));
@@ -529,7 +529,7 @@
     return s;
   }
   function spyGuessFlow() {
-    // the spy outs themselves: which human is it? (gated pick — but they are self-declaring)
+    // the spy outs themselves: which human is it? (gated pick - but they are self-declaring)
     var spy = UI.g.outsiderSeats[0];
     engine.outsiderReveal(UI.g, spy);
     render();
@@ -599,7 +599,7 @@
   function resolveAndGo() { engine.resolveVotes(UI.g); UI.vote = { order: [], idx: 0, shown: false, pick: null }; postVote(); }
   function postVote() {
     // re-votes loop back to the vote screen
-    if (UI.g.phase === 'vote') { UI.vote = { order: [], idx: 0, shown: false, pick: null }; UI.notice = 'Tied vote — vote again.'; }
+    if (UI.g.phase === 'vote') { UI.vote = { order: [], idx: 0, shown: false, pick: null }; UI.notice = 'Tied vote - vote again.'; }
     render();
   }
 
@@ -705,7 +705,7 @@
   function outcomeHeadline(o) {
     var O = engine.OUTCOMES;
     if (o === O.escaped_undetected) return 'The ' + OUT + ' escaped!';
-    if (o === O.caught_guessed) return 'Caught — but guessed the secret and escaped!';
+    if (o === O.caught_guessed) return 'Caught - but guessed the secret and escaped!';
     if (o === O.caught_failed) return 'The ' + OUT + ' was caught!';
     if (o === O.wrong_conviction) return 'Wrong! The ' + OUT + ' fooled everyone.';
     if (o === O.outsider_solved) return 'The ' + OUT + ' solved it!';

@@ -1,5 +1,5 @@
 /*
- * ui.daybreak.smoke.test.js — drives full Daybreak games through the real shared UI and
+ * ui.daybreak.smoke.test.js - drives full Daybreak games through the real shared UI and
  * asserts the no-leak boundary on handoff gates, decoy night screens, and vote screens.
  * The DAY screen is exempt because the Revealer may legitimately turn cards face-up there.
  * Run: node tests/ui.daybreak.smoke.test.js
@@ -82,7 +82,7 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
-console.log('\n# Daybreak UI smoke — full games, no-leak on shared screens');
+console.log('\n# Daybreak UI smoke - full games, no-leak on shared screens');
 playOneGame('game A');
 playOneGame('game B (3 bots)', 3);
 

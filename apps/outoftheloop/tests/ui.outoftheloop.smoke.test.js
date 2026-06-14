@@ -1,5 +1,5 @@
 /*
- * ui.outoftheloop.smoke.test.js — loads the REAL word-ui.js + Out of the Loop in a node DOM stub
+ * ui.outoftheloop.smoke.test.js - loads the REAL word-ui.js + Out of the Loop in a node DOM stub
  * and drives a full round (reveal -> questions -> debate -> vote -> tally -> guess -> round_over),
  * asserting the secret never leaks onto a shared screen and that the Outsider sees only the
  * category (never the word) on their gated card.

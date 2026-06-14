@@ -1,5 +1,5 @@
 /*
- * game.js (Imposter) — the game DEFINITION handed to WordCore.createEngine(), plus UI meta
+ * game.js (Imposter) - the game DEFINITION handed to WordCore.createEngine(), plus UI meta
  * (title/tagline/variant presets/help). Pure data + tiny hooks; no DOM.
  *
  * UMD: Node tests require() this; the inlined browser bundle reads window.WORD_GAME.
@@ -50,7 +50,7 @@
     validateRules: [
       function (c) {
         if (c.contentModel === 'wordPair' && c.giveOutsiderHint) {
-          return { level: 'warn', text: 'In Undercover the Imposter already has a (similar) word — the category hint makes them almost impossible to catch.' };
+          return { level: 'warn', text: 'In Undercover the Imposter already has a (similar) word - the category hint makes them almost impossible to catch.' };
         }
         return null;
       }
@@ -59,13 +59,13 @@
     // ---- UI meta (copy + the variation presets the Settings screen offers) ----
     meta: {
       title: 'Imposter',
-      tagline: 'Everyone gets the secret word. Everyone but one. Give a one-word clue, find the fake — before the fake fools you.',
+      tagline: 'Everyone gets the secret word. Everyone but one. Give a one-word clue, find the fake - before the fake fools you.',
       // Each variant is a named preset: a friendly bundle of config the player can pick, then
       // fine-tune. (The full option list is still available in Advanced settings.)
       variants: [
         { id: 'classic', name: 'Classic', blurb: 'The Crew share one word. The Imposter has nothing and must fake it.',
           patch: { contentModel: 'word', giveOutsiderHint: false } },
-        { id: 'beginner', name: 'Beginner', blurb: 'Same as Classic, but the Imposter is told the category — easier to blend in.',
+        { id: 'beginner', name: 'Beginner', blurb: 'Same as Classic, but the Imposter is told the category - easier to blend in.',
           patch: { contentModel: 'word', giveOutsiderHint: true } },
         { id: 'undercover', name: 'Undercover', blurb: 'The Imposter gets a SIMILAR word and may not even know they are the odd one out.',
           patch: { contentModel: 'wordPair', giveOutsiderHint: false } }
@@ -81,7 +81,7 @@
       // Which engine options are irrelevant to this game and should be hidden from the form:
       hiddenOptions: ['interaction', 'questionsPerRound', 'allowOutsiderEarlyGuess', 'accusationMode', 'scoreOutsiderSolved', 'scoreAccuserBonus', 'guessMode'],
       help: [
-        'Pass the phone around — each player privately sees the secret word (or that they are the Imposter).',
+        'Pass the phone around - each player privately sees the secret word (or that they are the Imposter).',
         'Going around the circle, everyone says ONE word linked to the secret. Too obvious helps the Imposter; too vague makes YOU look guilty.',
         'Then discuss and vote. Catch the Imposter and they get one guess at the word to escape.'
       ]
