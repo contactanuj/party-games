@@ -98,6 +98,20 @@ console.log('\n# config integrity - every role (incl. Villager) is freely editab
   ok(/\(max \d+\)/.test(html()), 'capped roles show their max');
   ok(rplus('villager') && !rplus('villager').disabled, 'Villager (filler) is never capped');
   var d5 = deck(); ok(d5 && d5.have === d5.need, '"Use recommended" yields an exact, startable deck');
+
+  // (f) center cards are configurable: the stepper moves the needed count and the deck rebalances
+  clickAct('preset');
+  var nB = deck().need;
+  ok(byAct('cc+') && byAct('cc-'), 'center-card stepper is present');
+  clickAct('cc+'); var nUp = deck();
+  ok(nUp && nUp.need === nB + 1 && nUp.have === nUp.need, 'cc+ raises the needed count and rebalances (' + JSON.stringify(nUp) + ')');
+  clickAct('cc-'); clickAct('cc-'); var nDn = deck();
+  ok(nDn && nDn.need === nB - 1 && nDn.have === nDn.need, 'cc- lowers the needed count and rebalances (' + JSON.stringify(nDn) + ')');
+  for (var z = 0; z < 8; z++) clickAct('cc-'); var nMin = deck();
+  ok(nMin && nMin.need === nB - 2 && nMin.have === nMin.need, 'center clamps at its minimum (1) and stays balanced (' + JSON.stringify(nMin) + ')');
+  for (var z2 = 0; z2 < 8; z2++) clickAct('cc+'); var nMax = deck();
+  ok(nMax && nMax.need === nB + 2 && nMax.have === nMax.need, 'center clamps at its maximum (5) and stays balanced (' + JSON.stringify(nMax) + ')');
+  clickAct('preset');
   clickAct('home');
 })();
 

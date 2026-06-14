@@ -82,7 +82,7 @@
     },
 
     {
-      id: 'seer', name: 'Seer', team: 'village', wake: 5, maxCopies: 1, optional: true, copyImmediate: true,
+      id: 'seer', name: 'Seer', team: 'village', wake: 5, maxCopies: 1, optional: true, copyImmediate: true, idealCenter: 2,
       blurb: 'Look at one other player\'s card, OR two of the center cards.',
       prompt: 'You may look at one player\'s card or two center cards.',
       narration: { open: 'Seer, wake up. You may look at one other player\'s card, or two of the center cards.', close: 'Seer, close your eyes.' },
@@ -133,7 +133,7 @@
     },
 
     {
-      id: 'drunk', name: 'Drunk', team: 'village', wake: 8, maxCopies: 1, copyImmediate: true,
+      id: 'drunk', name: 'Drunk', team: 'village', wake: 8, maxCopies: 1, copyImmediate: true, minCenter: 1,
       blurb: 'You must swap your card with a center card, without looking. You no longer know who you are.',
       prompt: 'Swap your card with a center card (you will not see it).',
       narration: { open: 'Drunk, wake up and swap your card with a card from the center.', close: 'Drunk, close your eyes.' },

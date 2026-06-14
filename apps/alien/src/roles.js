@@ -23,7 +23,7 @@
 
   var alien = [
     {
-      id: 'oracle', name: 'Oracle', team: 'village', wake: -9, maxCopies: 1, variants: 3,
+      id: 'oracle', name: 'Oracle', team: 'village', wake: -9, maxCopies: 1, variants: 3, minCenter: 1,
       blurb: 'The signal shows you one relic in the center each game.',
       prompt: 'The signal reveals a center relic to you.',
       narration: { open: 'Oracle, wake up - the signal shows you a center card.', close: 'Oracle, close your eyes.' },

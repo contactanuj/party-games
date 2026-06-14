@@ -78,11 +78,13 @@ function autoAct() {
   var c2 = byAct('act-confirm'); if (c2 && !c2.disabled) c2.click();
 }
 
-function playOneGame(label, botClicks) {
+function playOneGame(label, botClicks, centerDelta) {
   // Home -> setup -> start
   clickAct('new');
   ok(/New game/.test(html()), label + ': reached setup');
   for (var b = 0; b < (botClicks || 0); b++) clickAct('bot+');
+  var cd = centerDelta || 0;                                  // play at a non-default center count
+  for (var cdi = 0; cdi < Math.abs(cd); cdi++) clickAct(cd < 0 ? 'cc-' : 'cc+');
   clickAct('start');
   ok(/Pass the phone to/.test(html()), label + ': reached the first private reveal gate');
 
@@ -155,6 +157,20 @@ console.log('\n# config integrity - every role (incl. Villager) is freely editab
   ok(rplus('villager') && !rplus('villager').disabled, 'Villager (filler) is never capped');
   var d5 = deck();
   ok(d5 && d5.have === d5.need, '"Use recommended" yields an exact, startable deck');
+
+  // (f) center cards are configurable: the stepper moves the needed count and the deck rebalances
+  clickAct('preset');
+  var nB = deck().need;
+  ok(byAct('cc+') && byAct('cc-'), 'center-card stepper is present');
+  clickAct('cc+'); var nUp = deck();
+  ok(nUp && nUp.need === nB + 1 && nUp.have === nUp.need, 'cc+ raises the needed count and rebalances (' + JSON.stringify(nUp) + ')');
+  clickAct('cc-'); clickAct('cc-'); var nDn = deck();
+  ok(nDn && nDn.need === nB - 1 && nDn.have === nDn.need, 'cc- lowers the needed count and rebalances (' + JSON.stringify(nDn) + ')');
+  for (var z = 0; z < 8; z++) clickAct('cc-'); var nMin = deck();
+  ok(nMin && nMin.need === nB - 2 && nMin.have === nMin.need, 'center clamps at its minimum (1) and stays balanced (' + JSON.stringify(nMin) + ')');
+  for (var z2 = 0; z2 < 8; z2++) clickAct('cc+'); var nMax = deck();
+  ok(nMax && nMax.need === nB + 2 && nMax.have === nMax.need, 'center clamps at its maximum (5) and stays balanced (' + JSON.stringify(nMax) + ')');
+  clickAct('preset');
   clickAct('home');
 })();
 
@@ -162,6 +178,8 @@ console.log('\n# UI smoke - full pass-and-play games, no-leak assertions');
 playOneGame('game A');
 playOneGame('game B');
 playOneGame('game C (3 bots)', 3);   // bot players fill seats; night/vote auto-resolve for them
+playOneGame('game D (1 center card, 4 bots)', 4, -2);  // Seer peeks 2 but only 1 center -> clamp must not stall
+playOneGame('game E (5 center cards, 4 bots)', 4, 2);  // a deck heavier on undealt center cards
 
 // Narrator mode: switch the draft to narrator, start, and walk the script (no leaks asserted - // the script names roles aloud by design, but it shows no player's secret identity).
 console.log('\n# Narrator mode walkthrough');

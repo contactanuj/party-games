@@ -17,6 +17,7 @@
   var S = window.PartySound || { play: function () {}, resume: function () {}, setEnabled: function () {}, isEnabled: function () { return true; } };
   var KEY = 'pg_' + DEF.game;
   var REG = {}; DEF.roles.forEach(function (r) { REG[r.id] = r; });
+  var CENTER_MIN = 1, CENTER_MAX = 5; // center cards are configurable in this range (classic is 3)
 
   var view = 'home';      // home | help | setup | play
   var G = null;           // engine state
@@ -149,6 +150,11 @@
       // Mode
       '<label class="field">How are you playing?</label>' +
       modeToggle() +
+
+      // Center cards (face-down, undealt) - configurable; the deck refits to players + center.
+      '<label class="field">Center cards (face-down)</label>' +
+      '<div class="stepper panel"><button class="stepbtn" data-act="cc-">−</button><span class="val">' + draft.centerCount + '</span><button class="stepbtn" data-act="cc+">+</button></div>' +
+      '<p class="small muted">Undealt cards no one holds. Some roles secretly swap with them, so your card may change overnight. Classic is 3 (range ' + CENTER_MIN + '-' + CENTER_MAX + ').</p>' +
 
       // Role set editor
       '<h2>Roles in the deck</h2>' +
@@ -645,13 +651,15 @@
       // setup steppers
       case 'pc+': setPc(draft.playerCount + 1); break;
       case 'pc-': setPc(draft.playerCount - 1); break;
+      case 'cc+': setCenter((draft.centerCount || 3) + 1); break;
+      case 'cc-': setCenter((draft.centerCount || 3) - 1); break;
       case 'bot+': setBots((draft.botCount || 0) + 1); break;
       case 'bot-': setBots((draft.botCount || 0) - 1); break;
       case 't+': draft.dayTimerSeconds = Math.min(600, (draft.dayTimerSeconds || 0) + 30); render(); break;
       case 't-': draft.dayTimerSeconds = Math.max(0, (draft.dayTimerSeconds || 0) - 30); render(); break;
       case 'tt+': draft.turnTimerSeconds = Math.min(180, (draft.turnTimerSeconds || 0) + 15); render(); break;
       case 'tt-': draft.turnTimerSeconds = Math.max(0, (draft.turnTimerSeconds || 0) - 15); render(); break;
-      case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre.slice(); else refitDeck(); render(); break; }
+      case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre.slice(); refitDeck(); render(); break; }
       case 'fillv': { var need = neededCards(); while (draft.roleSet.length < need) draft.roleSet.push('villager'); render(); break; }
       case 'start': startGame(); break;
 
@@ -703,9 +711,18 @@
     // Villagers. The count can never be left wrong by a player-count change.
     var pre = E.presetRoleSet(pc);
     if (pre) { draft.roleSet = pre.slice(); }
-    else { refitDeck(); }
+    // Always refit: presets are written for the classic 3 center cards, so if the player has
+    // chosen a different center count the Villager filler tops the deck up/down to players+center.
+    refitDeck();
     if (draft.botCount > pc - 1) draft.botCount = pc - 1;
     applyBotNames(draft);
+    render();
+  }
+  // Center cards are configurable (range CENTER_MIN..CENTER_MAX). Changing the count keeps the
+  // player's role choices and just refits the Villager filler so the deck stays = players+center.
+  function setCenter(n) {
+    draft.centerCount = Math.max(CENTER_MIN, Math.min(CENTER_MAX, n));
+    refitDeck();
     render();
   }
   // Trim/pad Villagers so the deck holds exactly neededCards(); drop overflow specials if a lower

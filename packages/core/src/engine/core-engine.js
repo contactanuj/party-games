@@ -154,6 +154,19 @@
         }
       });
 
+      // Center cards are configurable. Keep the count whole and non-negative, hard-block a count
+      // too low for any role that MUST use a center card (r.minCenter), and softly flag roles that
+      // merely work better with more (r.idealCenter, e.g. the Seer's two-card peek).
+      if (center < 0 || center !== Math.floor(center)) errors.push('Center cards must be a whole number (0 or more).');
+      Object.keys(counts).forEach(function (id) {
+        var r = REG[id];
+        if (r && r.minCenter && center < r.minCenter)
+          errors.push((r.name || id) + ' needs at least ' + r.minCenter + ' center card' + (r.minCenter === 1 ? '' : 's') +
+            ' to act - add center cards or remove it.');
+        if (r && r.idealCenter && center < r.idealCenter)
+          warnings.push((r.name || id) + ' normally uses ' + r.idealCenter + ' center cards; with ' + center + ' it will use fewer.');
+      });
+
       // Names: one per player, non-empty, unique (duplicates are a soft warning).
       var names = c.playerNames || [];
       if (names.length !== pc) errors.push('You have ' + names.length + ' name(s) but ' + pc + ' player(s).');
@@ -541,13 +554,33 @@
     }
 
     // Describe the current step WITHOUT leaking anything to anyone but the acting seat.
+    // A pickCenter step may ask for more center cards than the (now configurable) center holds -
+    // e.g. the Seer peeks 2 but the table only has 1 center card. Clamp every pickCenter's `count`
+    // to the cards actually present so no role - driven by a human OR a bot - is ever asked for an
+    // impossible number and gets stuck. Center is >= 1 and mandatory-center roles validate for
+    // their minimum, so a clamped count is always >= 1. With the default 3 center cards this is a
+    // no-op, so normal play is unchanged.
+    function roleInputSpec(state, r, ctx) {
+      var spec = (r && r.inputs ? r.inputs(ctx) : []) || [];
+      var avail = centerCountOf(state);
+      return spec.map(function (s) {
+        if (s && s.type === 'pickCenter' && s.count != null && s.count > avail) {
+          var clamped = {};
+          for (var k in s) { if (Object.prototype.hasOwnProperty.call(s, k)) clamped[k] = s[k]; }
+          clamped.count = avail;
+          return clamped;
+        }
+        return s;
+      });
+    }
+
     function getStep(state) {
       var step = currentStep(state);
       if (!step) return null;
       var seat = step.seat;
       var r = REG[actingRole(state, seat)];
       var ctx = makeCtx(state, seat);
-      var inputs = (r.inputs ? r.inputs(ctx) : []) || [];
+      var inputs = roleInputSpec(state, r, ctx);
       // "Pre-info" the acting player is shown before deciding (e.g. ally lists are produced
       // by acting, so they are NOT pre-shown; this stays empty unless a role opts in).
       return {
@@ -597,7 +630,7 @@
       }
       var r = REG[actingRole(state, seat)];
       var ctx = makeCtx(state, seat);
-      var spec = (r.inputs ? r.inputs(ctx) : []) || [];
+      var spec = roleInputSpec(state, r, ctx);
       var err = validateInputs(spec, inputs);
       if (err) throw new Error(err);
       if (r.act) r.act(ctx, inputs || {});
@@ -941,7 +974,7 @@
       var step = currentStep(state); if (!step) return {};
       var seat = step.seat, r = REG[actingRole(state, seat)];
       var ctx = makeCtx(state, seat);
-      var spec = (r.inputs ? r.inputs(ctx) : []) || [];
+      var spec = roleInputSpec(state, r, ctx);
       var inputs = {};
       spec.forEach(function (s) {
         if (s.visibleWhen) { var k = Object.keys(s.visibleWhen)[0]; if (inputs[k] !== s.visibleWhen[k]) return; }

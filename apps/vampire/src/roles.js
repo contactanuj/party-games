@@ -28,7 +28,7 @@
 
   var vampire = [
     {
-      id: 'copycat', name: 'Copycat', team: function () { return 'village'; }, wake: -8, maxCopies: 1, optional: false,
+      id: 'copycat', name: 'Copycat', team: function () { return 'village'; }, wake: -8, maxCopies: 1, optional: false, minCenter: 1,
       blurb: 'Look at a center card and become that role for the rest of the game.',
       prompt: 'View a center card - you become that role.',
       narration: { open: 'Copycat, wake up and look at one center card. You are now that role.', close: 'Copycat, close your eyes.' },
