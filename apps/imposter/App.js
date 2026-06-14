@@ -10,7 +10,7 @@ export default function App() {
   const bg = identity.bgColor || '#0e1117';
   return (
     <View style={[styles.container, { backgroundColor: bg }]}>
-      <StatusBar style="light" backgroundColor={bg} />
+      <StatusBar style="light" backgroundColor={bg} translucent={false} />
       <WebView
         style={[styles.webview, { backgroundColor: bg }]}
         source={{ html }}
