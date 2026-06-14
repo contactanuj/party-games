@@ -8,25 +8,25 @@ pass-and-play party games that share two engines and one build pipeline.
 1. **Never leak hidden information.** Every shared/observable screen must render only from the
    engine's public view (`publicState()` / `publicView()`) and must never show a role, team, secret
    word, location, or any role-coded colour/icon/ordering. Secrets appear only behind the per-player
-   handoff gate. If you touch the UI, run the UI smoke tests — they assert no leaks.
+   handoff gate. If you touch the UI, run the UI smoke tests - they assert no leaks.
 2. **Engines are pure and deterministic.** No DOM, no network, no `Date.now()`/`Math.random()` in
-   engine code — randomness comes only from the seeded PRNG on `state.rngState`. State must stay
+   engine code - randomness comes only from the seeded PRNG on `state.rngState`. State must stay
    JSON-serializable. Same `(config, seed, inputs)` ⇒ byte-identical state.
 3. **Configurable, but guarded.** Every practical variation is a config field; `validateConfig`
    returns `{errors, warnings}`. Errors must make an illegal/unwinnable setup impossible to start
-   (and the UI disables the proceed button) — they are not just cosmetic warnings.
+   (and the UI disables the proceed button) - they are not just cosmetic warnings.
 4. **Build artifacts are generated.** `assets/app.html` is produced by `build.js`; `app.json` by
    `make-app-json.js`; `icon.png`/`splash.png` by `make-icon.js`. Edit the sources, not the output.
 
 ## Project layout
 
 ```
-packages/core            @partydeck/core — shared foundation
+packages/core            @partydeck/core - shared foundation
   src/engine/core-engine.js   night/vote/reveal engine (Werewolf family)
   src/engine/word-engine.js   secret-word / find-the-outsider engine (Imposter / Out of the Loop / Spy Hunt)
   src/ui/{ui-core,word-ui}.js shared pass-and-play UIs (one per family)
   src/ui/sound.js             synthesized SFX
-  src/css/base.css            themed base (games override CSS tokens only — no role colours)
+  src/css/base.css            themed base (games override CSS tokens only - no role colours)
   build/                      compose, guards, make-app-json, png-canvas
   tests/                      framework tests + DOM stubs
 apps/<game>              one Expo app (= one APK) each

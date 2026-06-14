@@ -1,5 +1,5 @@
 /*
- * dom-stub.js — a minimal DOM good enough to load ui-core.js and drive the real UI by
+ * dom-stub.js - a minimal DOM good enough to load ui-core.js and drive the real UI by
  * "clicking" elements, with NO dependencies. Shared by every game's ui smoke test.
  *
  * It parses the innerHTML string the UI assigns into lightweight node objects (cached per

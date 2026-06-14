@@ -1,6 +1,6 @@
 /*
- * make-icon.js (Out of the Loop) — renders assets/icon.png (1024x1024), zero deps.
- * A clean "loop": a ring of dots, with ONE dot clearly OUTSIDE the loop — the player who's out
+ * make-icon.js (Out of the Loop) - renders assets/icon.png (1024x1024), zero deps.
+ * A clean "loop": a ring of dots, with ONE dot clearly OUTSIDE the loop - the player who's out
  * of it. Brand teal on the dark-teal background. Run: node scripts/make-icon.js
  */
 'use strict';
@@ -36,7 +36,7 @@ cv.paint(function (px, py) {
     var c = C.cov(C.dist(px, py, d[0], d[1]) - d[2]);
     if (c > dotCov) { dotCov = c; var sh = C.clamp((py - 220) / 600, 0, 1); dotCol = C.mix(TEAL_LT, TEAL, sh); }
   }
-  // the outside dot — lighter, to read as the odd one out
+  // the outside dot - lighter, to read as the odd one out
   var outCov = C.cov(C.dist(px, py, OUT[0], OUT[1]) - OUT[2]);
 
   var out = null, cover = 0;

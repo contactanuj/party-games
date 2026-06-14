@@ -1,5 +1,5 @@
-/* theme.css (Imposter) — brand palette. base.css consumes these tokens. NO role-coded colours:
-   nothing here is keyed to "imposter vs crew" — the secrecy of the game depends on it. */
+/* theme.css (Imposter) - brand palette. base.css consumes these tokens. NO role-coded colours:
+   nothing here is keyed to "imposter vs crew" - the secrecy of the game depends on it. */
 :root {
   --bg: #14121f;        /* deep indigo */
   --panel: #221d36;     /* raised panel */

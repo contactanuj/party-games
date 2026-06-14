@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Vampire</title>
   <style>
-/* base.css — shared theme. Colors come from CSS custom properties each game overrides in
+/* base.css - shared theme. Colors come from CSS custom properties each game overrides in
  * theme.css (--bg, --panel, --text, --muted, --accent, --danger, --good ...). No game-specific
  * colors here, and CRUCIALLY no role/team-coded colors that could leak identity on a shared
- * screen — role coloring is never used in public surfaces. */
+ * screen - role coloring is never used in public surfaces. */
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; height: 100%; }
@@ -89,7 +89,7 @@ label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size
 .err { background: rgba(255,80,80,.12); border: 1px solid var(--danger); color: #ffd9d9; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
 .warn { background: rgba(240,190,70,.10); border: 1px solid rgba(240,190,70,.5); color: #ffe9b8; border-radius: 10px; padding: 10px 12px; margin: 6px 0; font-size: 14px; }
 
-/* Handoff gate — the secrecy screen. Deliberately neutral; reveals nothing. */
+/* Handoff gate - the secrecy screen. Deliberately neutral; reveals nothing. */
 .gate { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; }
 .gate .who { font-size: 28px; font-weight: 800; }
 .gate .hint { color: var(--muted); max-width: 320px; }
@@ -116,7 +116,7 @@ label.field { display: block; margin: 10px 0 4px; color: var(--muted); font-size
 
 .footer-note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 14px; }
 
-/* theme.css (Vampire) — CSS custom-property overrides only. Crimson-night palette. */
+/* theme.css (Vampire) - CSS custom-property overrides only. Crimson-night palette. */
 :root {
   --bg: #100407;
   --panel: #20090e;
@@ -135,7 +135,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   <div id="app"></div>
   <script>
 /*
- * core-engine.js — shared rules engine for the social-deduction "night / vote / reveal"
+ * core-engine.js - shared rules engine for the social-deduction "night / vote / reveal"
  * family (Werewolf, Daybreak, Vampire, Alien). PURE: no DOM, no network.
  *
  * Design tenets (the correctness + secrecy backbone):
@@ -153,7 +153,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
  *    role/team/card. Private knowledge is per-seat and surfaced only via privateReveal(seat).
  *    The UI must render shared screens from publicView() exclusively.
  *
- * The engine hardcodes NO role names — each game passes a role registry (data objects). This
+ * The engine hardcodes NO role names - each game passes a role registry (data objects). This
  * file implements the framework + the base Werewolf-family win/vote rules; later games add
  * roles (which can carry their own win contributors / vote modifiers) and a few new mechanics
  * (tokens, marks) via the seams provided here.
@@ -166,7 +166,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Seeded PRNG (mulberry32) — deterministic + serialized via state.rngState.
+  // Seeded PRNG (mulberry32) - deterministic + serialized via state.rngState.
   // ---------------------------------------------------------------------------
   function nextRand(state) {
     var t = (state.rngState = (state.rngState + 0x6D2B79F5) >>> 0);
@@ -263,7 +263,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
       var pc = c.playerCount;
       if (!(pc >= 3)) errors.push('Need at least 3 players.');
-      if (pc > 10) warnings.push('More than 10 players is outside the tested range — balance is not guaranteed.');
+      if (pc > 10) warnings.push('More than 10 players is outside the tested range - balance is not guaranteed.');
 
       var roleSet = c.roleSet || [];
       var center = c.centerCount == null ? CENTER : c.centerCount;
@@ -298,14 +298,14 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
         var nm = (names[i] || '').trim();
         if (!nm) { errors.push('Every player needs a name (player ' + (i + 1) + ' is blank).'); continue; }
         var key = nm.toLowerCase();
-        if (seen[key]) warnings.push('Two players are both named "' + nm + '" — they will be hard to tell apart.');
+        if (seen[key]) warnings.push('Two players are both named "' + nm + '" - they will be hard to tell apart.');
         seen[key] = true;
       }
 
       // At least one waking-or-meaningful tension: warn if there is no way for the village to win
       // or no werewolf-team presence possible (purely informational; still playable).
       var anyWolfPossible = roleSet.some(isWerewolfRole);
-      if (!anyWolfPossible) warnings.push('No Werewolf is in the card set — the village can only win by no one dying.');
+      if (!anyWolfPossible) warnings.push('No Werewolf is in the card set - the village can only win by no one dying.');
 
       // Dependency warnings declared by roles (e.g. Insomniac wants a swapper; Mason wants 2).
       def.roles.forEach(function (r) {
@@ -377,7 +377,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
           seat: s,
           name: config.playerNames[s],
           number: s + 1,                 // stable "player number" (Alien addressing)
-          dealtRole: card.role,          // FROZEN — drives wake order
+          dealtRole: card.role,          // FROZEN - drives wake order
           dealtCardId: card.id,
           copiedRole: null,              // Doppelgänger/Copycat acquired acting-identity
           alive: true,
@@ -391,7 +391,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       }
 
       // Reserved cards: a role in the set can require an EXTRA fixed card in its own slot
-      // (e.g. the Alpha Wolf's "center werewolf" — a guaranteed Werewolf, not shuffled).
+      // (e.g. the Alpha Wolf's "center werewolf" - a guaranteed Werewolf, not shuffled).
       var reservedSet = {};
       config.roleSet.forEach(function (id) { if (REG[id] && REG[id].reservedCenter) reservedSet[id] = REG[id].reservedCenter; });
       var ri = 0;
@@ -652,7 +652,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       }
     }
 
-    // helpers() — a small subset of ctx for engine-internal/per-game hooks (no acting seat).
+    // helpers() - a small subset of ctx for engine-internal/per-game hooks (no acting seat).
     function helpers(state) {
       return {
         REG: REG, role: role, teamOfRole: teamOfRole,
@@ -759,7 +759,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
         var insertAt;
         if (REG[ins.roleId].copyImmediate) {
           // Immediate copies (Seer/Robber/Troublemaker/Drunk) act right now, as the very next
-          // step — exactly as the Doppelgänger does at the table (cursor already points past the
+          // step - exactly as the Doppelgänger does at the table (cursor already points past the
           // Doppelgänger's own step, so `cursor` is the next-to-run slot).
           insertAt = state.cursor;
         } else {
@@ -938,7 +938,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }
 
     // =========================================================================
-    // Win resolution — base Werewolf-family rules + composable per-role contributors.
+    // Win resolution - base Werewolf-family rules + composable per-role contributors.
     // Multiple teams can win. Returns result on state.result.
     // =========================================================================
     function resolveOutcome(state) {
@@ -975,7 +975,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       if (wwSeats.length === 0 && minionSeats.length > 0) {
         var nonMinionDied = deaths.some(function (d) { return minionSeats.indexOf(d) === -1; });
         if (nonMinionDied) werewolfWin = true;
-        else if (someoneDied) villageWin = true; // the village lynched only the Minion — they win
+        else if (someoneDied) villageWin = true; // the village lynched only the Minion - they win
       }
 
       // ---- tanner (solo): wins iff a tanner dies; suppresses the werewolf win unless a
@@ -997,7 +997,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
         if (verdict && verdict.suppress) delete winners[verdict.suppress];
       });
 
-      // Disqualifications (e.g. Disease: a voter for the marked player cannot win) — flag pass.
+      // Disqualifications (e.g. Disease: a voter for the marked player cannot win) - flag pass.
       var dq = {};
       collectDisqualifiers(state).forEach(function (d) { d(wc, dq); });
 
@@ -1062,7 +1062,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }
 
     // =========================================================================
-    // Bot play — computer-controlled seats. Night actions are chosen legally (random via the
+    // Bot play - computer-controlled seats. Night actions are chosen legally (random via the
     // engine PRNG, so deterministic + replayable); votes use a light heuristic from the bot's
     // OWN private knowledge (never from anything a human couldn't also deduce).
     // =========================================================================
@@ -1139,7 +1139,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }
 
     // =========================================================================
-    // INFORMATION BOUNDARY — what the shared (public) screen may render.
+    // INFORMATION BOUNDARY - what the shared (public) screen may render.
     // Returns NOTHING that could identify a role/team/card before the end.
     // =========================================================================
     function publicView(state) {
@@ -1195,7 +1195,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       };
     }
 
-    // Full truth — only valid AFTER the game ends (used by the end-of-night reveal/recap).
+    // Full truth - only valid AFTER the game ends (used by the end-of-night reveal/recap).
     function endReveal(state) {
       if (state.phase !== 'end') return null;
       return {
@@ -1278,7 +1278,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   </script>
   <script>
 /*
- * base-roles.js — the shared base role definitions used by more than one game in the family
+ * base-roles.js - the shared base role definitions used by more than one game in the family
  * (Werewolf is just these; Daybreak/Vampire/Alien reuse them and add their own). Pure data +
  * small act()/inputs() handlers that drive the engine. No DOM.
  *
@@ -1357,7 +1357,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       narration: { open: 'Masons, wake up and look for the other Mason.', close: 'Masons, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.identifyAllies(function (s) { return ctx.actingRole(s) === 'mason'; }); },
-      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair — use 0 or 2.' }]; return []; }
+      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair - use 0 or 2.' }]; return []; }
     },
 
     {
@@ -1450,12 +1450,12 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       blurb: 'You hate your life. You win only if you die. You are on no team.'
     },
 
-    { id: 'villager', name: 'Villager', team: 'village', wake: null, blurb: 'No special ability — but definitely not a Werewolf.' },
+    { id: 'villager', name: 'Villager', team: 'village', wake: null, blurb: 'No special ability - but definitely not a Werewolf.' },
 
     {
       id: 'doppelganger', name: 'Doppelgänger', team: function () { return 'village'; }, wake: -7, maxCopies: 1,
       blurb: 'View one player\'s card and become that role for the rest of the game.',
-      prompt: 'View one player\'s card — you become that role.',
+      prompt: 'View one player\'s card - you become that role.',
       narration: { open: 'Doppelgänger, wake up and look at one other player\'s card. You are now that role.', close: 'Doppelgänger, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Copy whose card?', exclude: [ctx.self] }]; },
       act: function (ctx, inputs) {
@@ -1464,7 +1464,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
         ctx.copyRole(copied);
         if (ctx.roleHasWake(copied)) ctx.reWakeSelfAs(copied);
       },
-      validate: function () { return [{ level: 'warn', text: 'The Doppelgänger adds the most complexity — best added once the table knows the other roles.' }]; }
+      validate: function () { return [{ level: 'warn', text: 'The Doppelgänger adds the most complexity - best added once the table knows the other roles.' }]; }
     }
   ];
 
@@ -1475,7 +1475,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   </script>
   <script>
 /*
- * roles.js (Vampire) — village roles plus the Vampire team and the Marks system.
+ * roles.js (Vampire) - village roles plus the Vampire team and the Marks system.
  *   Marks: clarity (default), vampire (join the vampires), fear (can't act), bat (Renfield),
  *   disease (your voters can't win), love (death-linked lovers), traitor (win only if a
  *   teammate dies), assassin (the Assassin wins if you die).
@@ -1506,7 +1506,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     {
       id: 'copycat', name: 'Copycat', team: function () { return 'village'; }, wake: -8, maxCopies: 1, optional: false,
       blurb: 'Look at a center card and become that role for the rest of the game.',
-      prompt: 'View a center card — you become that role.',
+      prompt: 'View a center card - you become that role.',
       narration: { open: 'Copycat, wake up and look at one center card. You are now that role.', close: 'Copycat, close your eyes.' },
       inputs: function () { return [{ id: 'center', type: 'pickCenter', count: 1, label: 'Copy which center card?' }]; },
       act: function (ctx, inputs) {
@@ -1580,7 +1580,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
     {
       id: 'diseased', name: 'Diseased', team: 'village', wake: -5, maxCopies: 1,
-      blurb: 'Mark a neighbor with Disease — anyone who votes for them cannot win.',
+      blurb: 'Mark a neighbor with Disease - anyone who votes for them cannot win.',
       prompt: 'Mark a neighbor with Disease.',
       narration: { open: 'Diseased, wake up and mark the player to your left or right with Disease.', close: 'Diseased, close your eyes.' },
       inputs: function (ctx) {
@@ -1592,7 +1592,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
     {
       id: 'cupid', name: 'Cupid', team: 'village', wake: -4, maxCopies: 1, optional: true,
-      blurb: 'Link two players as Lovers — if one is eliminated, both are.',
+      blurb: 'Link two players as Lovers - if one is eliminated, both are.',
       prompt: 'You may link two players in love.',
       narration: { open: 'Cupid, wake up. You may give two players the Mark of Love.', close: 'Cupid, close your eyes.' },
       inputs: function () {
@@ -1609,7 +1609,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
     {
       id: 'instigator', name: 'Instigator', team: 'village', wake: -3, maxCopies: 1, optional: true,
-      blurb: 'You may brand a player a Traitor — they win only if a teammate is eliminated.',
+      blurb: 'You may brand a player a Traitor - they win only if a teammate is eliminated.',
       prompt: 'You may give a player the Mark of the Traitor.',
       narration: { open: 'Instigator, wake up. You may give a player the Mark of the Traitor.', close: 'Instigator, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Brand whom? (or skip)', exclude: [ctx.self], optional: true }]; },
@@ -1618,7 +1618,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
     {
       id: 'priest', name: 'Priest', team: 'village', wake: -2, maxCopies: 1,
-      blurb: 'Cleanse yourself (Mark of Clarity) and, optionally, one other player — clearing any other mark.',
+      blurb: 'Cleanse yourself (Mark of Clarity) and, optionally, one other player - clearing any other mark.',
       prompt: 'Bless yourself, and optionally one other.',
       narration: { open: 'Priest, wake up. Give yourself a Mark of Clarity; you may also bless one other player.', close: 'Priest, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Also bless whom? (optional)', exclude: [ctx.self], optional: true }]; },
@@ -1766,7 +1766,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     };
   }
 
-  // Vampire is village vs vampires — drop the Werewolf-specific roles from the base set.
+  // Vampire is village vs vampires - drop the Werewolf-specific roles from the base set.
   var villageBase = BASE.roles.filter(function (r) { return ['werewolf', 'minion'].indexOf(r.id) === -1; });
 
   var presets = {
@@ -1792,13 +1792,13 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     resolveOutcome: resolveOutcome,
     voteModifiers: [loversLink],
     markDesc: {
-      vampire: 'Mark of the Vampire — you are now a Vampire.',
-      fear: 'Mark of Fear — you cannot use your power tonight.',
-      bat: 'Mark of the Bat — Renfield\'s token.',
-      disease: 'Mark of Disease — anyone who votes for you cannot win.',
-      love: 'Mark of Love — you are linked to your lover; if one dies, both die.',
-      traitor: 'Mark of the Traitor — you win only if a teammate is eliminated.',
-      assassin: 'Mark of the Assassin — the Assassin wins if you are eliminated.'
+      vampire: 'Mark of the Vampire - you are now a Vampire.',
+      fear: 'Mark of Fear - you cannot use your power tonight.',
+      bat: 'Mark of the Bat - Renfield\'s token.',
+      disease: 'Mark of Disease - anyone who votes for you cannot win.',
+      love: 'Mark of Love - you are linked to your lover; if one dies, both die.',
+      traitor: 'Mark of the Traitor - you win only if a teammate is eliminated.',
+      assassin: 'Mark of the Assassin - the Assassin wins if you are eliminated.'
     },
     teams: [
       { id: 'village', name: 'Village', good: true },
@@ -1814,7 +1814,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   </script>
   <script>
 /*
- * sound.js — tiny synthesized SFX via WebAudio. window.PartySound.play(name).
+ * sound.js - tiny synthesized SFX via WebAudio. window.PartySound.play(name).
  * No assets, no network. Safe no-op if WebAudio is unavailable or muted.
  */
 (function () {
@@ -1857,7 +1857,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   </script>
   <script>
 /*
- * ui-core.js — the shared pass-and-play UI for every game in the family. Reads window.GameCore
+ * ui-core.js - the shared pass-and-play UI for every game in the family. Reads window.GameCore
  * (engine) + window.PARTY_GAME (this game's definition + presets + meta). No game-specific
  * logic lives here; per-game copy comes from PARTY_GAME / window.PARTY_META.
  *
@@ -1904,7 +1904,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     else html = renderHome();
     app.innerHTML = html;
     bind();
-    // Only jump to the top when the LOGICAL screen changes — selecting an input or editing the
+    // Only jump to the top when the LOGICAL screen changes - selecting an input or editing the
     // setup re-renders the same screen and must preserve the player's scroll position.
     var key = screenKey();
     if (key !== ui._lastKey) { window.scrollTo(0, 0); ui._lastKey = key; }
@@ -1928,14 +1928,14 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       resume +
       '<button class="btn" data-act="new">New game</button>' +
       '<button class="btn secondary" data-act="help">How to play &amp; roles</button>' +
-      '<p class="footer-note">Pass &amp; play on one device, for ' + minPlayers() + '–' + maxPlayers() + ' players.</p>'
+      '<p class="footer-note">Pass &amp; play on one device, for ' + minPlayers() + '-' + maxPlayers() + ' players.</p>'
     );
   }
   function minPlayers() { return 3; }
   function maxPlayers() { return 10; }
 
   // =========================================================================
-  // Help / glossary (general info — no secrecy concerns)
+  // Help / glossary (general info - no secrecy concerns)
   // =========================================================================
   function renderHelp() {
     var rolesByWake = DEF.roles.slice().sort(function (a, b) {
@@ -1948,7 +1948,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }).join('');
     return screen(false,
       '<div class="row"><h1>How to play</h1></div>' +
-      '<div class="panel"><p><b>Goal.</b> Everyone is secretly dealt a role. Over one night, some roles wake (in order) to peek at or swap cards — so by morning you may not be who you started as. Then everyone discusses and votes; the most-voted player is eliminated. Which team wins depends on who is eliminated.</p>' +
+      '<div class="panel"><p><b>Goal.</b> Everyone is secretly dealt a role. Over one night, some roles wake (in order) to peek at or swap cards - so by morning you may not be who you started as. Then everyone discusses and votes; the most-voted player is eliminated. Which team wins depends on who is eliminated.</p>' +
       '<p class="small muted">Your role can change during the night without you knowing. The team that wins is decided by the card you hold at the very end.</p></div>' +
       '<h2>Roles</h2>' + list +
       '<button class="btn secondary" data-act="home">Back</button>'
@@ -1995,7 +1995,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       // Bots
       '<label class="field">Computer players (bots)</label>' +
       '<div class="stepper panel"><button class="stepbtn" data-act="bot-">−</button><span class="val">' + (draft.botCount || 0) + '</span><button class="stepbtn" data-act="bot+">+</button></div>' +
-      '<p class="small muted">Bots fill seats and play on their own — great for practice or a small group. At least one human always plays.</p>' +
+      '<p class="small muted">Bots fill seats and play on their own - great for practice or a small group. At least one human always plays.</p>' +
 
       // Names
       '<label class="field">Player names</label>' +
@@ -2025,7 +2025,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       '<label class="field">Day discussion timer</label>' +
       '<div class="stepper panel"><button class="stepbtn" data-act="t-">−</button><span class="val">' + (draft.dayTimerSeconds ? draft.dayTimerSeconds + 's' : 'Off') + '</span><button class="stepbtn" data-act="t+">+</button></div>' +
 
-      // Validation + start (Start is disabled — not just an error at the bottom — until the setup is legal)
+      // Validation + start (Start is disabled - not just an error at the bottom - until the setup is legal)
       renderValidation(v) +
       '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : 'Fix the setup above to start') + '</button>'
     );
@@ -2048,7 +2048,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   }
   // The deck must ALWAYS hold exactly playerCount + centerCount cards (the rule of the game).
   // Villagers are the filler: adding a special role swaps out a Villager, removing one swaps it
-  // back — so the count can never be configured against the player count.
+  // back - so the count can never be configured against the player count.
   function neededCards() { return draft.playerCount + draft.centerCount; }
   function countOf(id) { return draft.roleSet.filter(function (x) { return x === id; }).length; }
   function villagerCount() { return countOf('villager'); }
@@ -2080,7 +2080,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     return ordered.map(function (r) {
       var c = counts[r.id] || 0;
       if (r.id === 'villager') {
-        // derived filler — shown, not directly editable
+        // derived filler - shown, not directly editable
         return '<div class="panel"><div class="row">' +
           '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">fills the deck to the right size</span></div>' +
           '<span class="val" style="min-width:30px">' + c + '</span></div></div>';
@@ -2123,7 +2123,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
   }
 
   // =========================================================================
-  // Play — dispatch on engine phase + UI flow
+  // Play - dispatch on engine phase + UI flow
   // =========================================================================
   function renderPlay() {
     if (G.mode === 'narrator') return renderNarrator();
@@ -2146,7 +2146,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }
     var p = G.players[f.idx];
     if (f.stage === 'gate') {
-      return gateScreen(p.name, 'Make sure only ' + esc(p.name) + ' can see the screen.', 'I am ' + esc(p.name) + ' — show my role', 'reveal-show');
+      return gateScreen(p.name, 'Make sure only ' + esc(p.name) + ' can see the screen.', 'I am ' + esc(p.name) + ' - show my role', 'reveal-show');
     }
     // show role privately
     var r = REG[p.dealtRole];
@@ -2170,7 +2170,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     if (G.config.hideRoleHolders !== false) {
       G.players.forEach(function (p) {
         if (!p.bot && !actionSeats[p.seat]) { // decoy for a human with no night action
-          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded — deterministic + unpredictable
+          var pos = Math.floor(E.rand(G) * (result.length + 1)); // seeded - deterministic + unpredictable
           result.splice(pos, 0, { kind: 'decoy', seat: p.seat });
         }
       });
@@ -2205,14 +2205,14 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     var who = entry.kind === 'real' ? liveStep.name : G.players[entry.seat].name;
 
     if (f.stage === 'gate') {
-      return gateScreen(who, 'Eyes on your own screen only. (Everyone takes a turn — passing the phone reveals nothing.)',
-        'I am ' + esc(who) + ' — continue', 'night-open');
+      return gateScreen(who, 'Eyes on your own screen only. (Everyone takes a turn - passing the phone reveals nothing.)',
+        'I am ' + esc(who) + ' - continue', 'night-open');
     }
     if (entry.kind === 'decoy') {
       return screen(true,
         timerBadge() +
         '<p class="muted">Night</p><div class="big-role">…</div>' +
-        '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along — don\'t let anyone read your screen.</p>' +
+        '<p class="muted" style="max-width:320px">Nothing for you to do right now. Tap to pass the phone along - don\'t let anyone read your screen.</p>' +
         '<button class="btn secondary" data-act="night-next">Pass on</button>'
       );
     }
@@ -2229,7 +2229,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
         timerBadge() +
         '<p class="muted">Your secret role</p>' +
         '<div class="big-role" style="font-size:26px">' + esc(step.roleName) + '</div>' +
-        '<div class="panel">You carry the <b>Mark of Fear</b> — you cannot use your power tonight.</div>' +
+        '<div class="panel">You carry the <b>Mark of Fear</b> - you cannot use your power tonight.</div>' +
         '<button class="btn" data-act="act-confirm">Continue</button>'
       );
     }
@@ -2298,17 +2298,17 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     switch (f.kind) {
       case 'sawCard': return 'You saw ' + f.pos + ': ' + f.roleName + '.';
       case 'allies':
-        if (!f.allies.length) return 'You found no partners — you appear to be alone.';
+        if (!f.allies.length) return 'You found no partners - you appear to be alone.';
         return 'With you: ' + f.allies.map(function (a) { return a.name; }).join(', ') + '.';
       case 'copied': return 'You are now the ' + f.roleName + '.';
-      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' — you have joined them.';
+      case 'piJoin': return 'You investigated a ' + (f.team === 'tanner' ? 'Tanner' : 'Werewolf') + ' - you have joined them.';
       case 'shielded': return 'You placed a protective shield on a card.';
       case 'placedArtifact': return 'You placed a face-down Artifact (you did not see which).';
-      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner — turned back face-down.';
-      case 'feared': return 'You carry the Mark of Fear — you could not act tonight.';
+      case 'revealerHidden': return 'You flipped a card, but it was a Werewolf or Tanner - turned back face-down.';
+      case 'feared': return 'You carry the Mark of Fear - you could not act tonight.';
       case 'mark': return 'You placed a mark.';
       case 'markMove': return 'You moved a mark.';
-      case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected — nothing happened.';
+      case 'blocked': case 'swapBlocked': case 'tokenBlocked': return 'That card was protected - nothing happened.';
       case 'noop': return f.reason || 'You did nothing.';
       default: return '';
     }
@@ -2322,15 +2322,15 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       timer = '<div class="timer">' + fmt(ui.timerLeft) + '</div>';
     }
     var pv = E.publicView(G);
-    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' — ' + esc(r.roleName); })
-      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' — ' + esc(r.roleName); }));
+    var revLines = (pv.revealedCards || []).map(function (r) { return esc(r.name) + ' - ' + esc(r.roleName); })
+      .concat((pv.revealedCenter || []).map(function (r) { return 'Center ' + (r.index + 1) + ' - ' + esc(r.roleName); }));
     var revealed = revLines.length ? '<div class="panel"><b>Turned face-up for all to see:</b><br>' + revLines.join('<br>') + '</div>' : '';
     return screen(true,
       '<h1>Morning</h1>' +
-      '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night — claim roles, accuse, defend. Remember: cards may have moved.</p>' +
+      '<p class="muted" style="max-width:360px">Everyone wakes. Discuss what happened in the night - claim roles, accuse, defend. Remember: cards may have moved.</p>' +
       revealed +
       timer +
-      '<button class="btn" data-act="to-vote">Everyone ready — vote</button>' +
+      '<button class="btn" data-act="to-vote">Everyone ready - vote</button>' +
       '<button class="btn ghost" data-act="recheck">Privately re-check my role</button>'
     );
   }
@@ -2347,7 +2347,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     }
     var p = G.players[f.humans[f.idx]];
     if (f.stage === 'gate') {
-      return gateScreen(p.name, 'Cast your vote in secret — all votes reveal together.', 'I am ' + esc(p.name) + ' — vote', 'vote-open');
+      return gateScreen(p.name, 'Cast your vote in secret - all votes reveal together.', 'I am ' + esc(p.name) + ' - vote', 'vote-open');
     }
     ui.curSelf = p.seat;
     return screen(false,
@@ -2395,7 +2395,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
       var line = f.lines[f.idx];
       var isLast = f.idx >= f.lines.length - 1;
       return screen(true,
-        '<p class="muted">Narrator — read aloud</p>' +
+        '<p class="muted">Narrator - read aloud</p>' +
         '<div class="script-line ' + (line.kind === 'all' ? 'all' : '') + '" style="font-size:22px">' + esc(line.text) + '</div>' +
         '<div class="row"><button class="btn secondary" data-act="narr-prev" ' + (f.idx === 0 ? 'disabled' : '') + '>Back</button>' +
         '<button class="btn" data-act="narr-next">' + (isLast ? 'Go to discussion' : 'Next') + '</button></div>' +
@@ -2405,7 +2405,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     if (f.stage === 'day') {
       var timer = G.config.dayTimerSeconds ? '<div class="timer">' + fmt(ui.timerLeft == null ? (ui.timerLeft = G.config.dayTimerSeconds) : ui.timerLeft) + '</div>' : '';
       return screen(true,
-        '<h1>Discuss</h1><p class="muted">Talk it out, then vote together — point on three.</p>' + timer +
+        '<h1>Discuss</h1><p class="muted">Talk it out, then vote together - point on three.</p>' + timer +
         '<button class="btn" data-act="narr-vote">Time to vote</button>'
       );
     }
@@ -2588,7 +2588,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
     G = E.newGame(G.config, seed); ui = {}; save(); render();
   }
 
-  // Re-check own role during the day — gated per player, reveals only to that player.
+  // Re-check own role during the day - gated per player, reveals only to that player.
   function openRecheck() {
     ui.recheck = { idx: 0, stage: 'gate' };
     view = 'play';
@@ -2706,7 +2706,7 @@ h1 { text-shadow: 0 2px 18px rgba(194,48,74,.3); }
 
   </script>
   <script>
-/* ui-glue.js (Vampire) — per-game copy for the shared UI. */
+/* ui-glue.js (Vampire) - per-game copy for the shared UI. */
 window.PARTY_META = {
   title: 'Vampire',
   tagline: 'A coven hides among you, marking victims in the dark. Marks change everything. Find the vampires before the night claims you.'

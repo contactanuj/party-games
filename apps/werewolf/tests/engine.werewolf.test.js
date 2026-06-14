@@ -1,5 +1,5 @@
 /*
- * engine.werewolf.test.js — exercises the shared engine through the real Werewolf roles.
+ * engine.werewolf.test.js - exercises the shared engine through the real Werewolf roles.
  * Dependency-free Node (run: node tests/engine.werewolf.test.js).
  *
  * Covers: config defaults/validation, deal invariants, night swap/look correctness,
@@ -263,7 +263,7 @@ section('determinism + JSON round-trip');
 })();
 
 // ---------------------------------------------------------------------------
-section('INFORMATION BOUNDARY — no leaks on public surfaces');
+section('INFORMATION BOUNDARY - no leaks on public surfaces');
 (function () {
   var s = E.newGame(E.defaultConfig(6), 5);
   currentPlayerCount = 6;

@@ -1,11 +1,11 @@
 /*
- * content.js (Out of the Loop) — built-in content, read by the shared word engine + UI.
+ * content.js (Out of the Loop) - built-in content, read by the shared word engine + UI.
  *
  * Every pack is type:'words' (model 'word'): all "In the Loop" players share ONE secret word
  * from the pack; the Outsider is told only the CATEGORY (the pack name) and must blend in.
  *
  * UNIQUE to this game: each pack carries a `questions` bank. The APP poses these questions in
- * turn (that's the "Out of the Loop" twist — structured, often silly prompts about the secret
+ * turn (that's the "Out of the Loop" twist - structured, often silly prompts about the secret
  * word). Questions are written to fit ANY word in the category, so they never reveal the word.
  *
  * Item shorthand: a plain word, or { w:'Pizza', c:[...] } where `c` only feeds offline bots.
@@ -23,12 +23,12 @@
     pack('food', 'Food & Drink',
       ['Pizza', 'Sushi', 'Coffee', 'Ice Cream', 'Curry', 'Pancakes', 'Cheese', 'Chocolate', 'Tacos', 'Soup', 'Steak', 'Salad', 'Burger', 'Pasta', 'Noodles', 'Cake', 'Cereal', 'Sandwich', 'Omelette', 'Dumplings', 'Risotto', 'Waffles', 'Bacon', 'Fries', 'Popcorn', 'Yoghurt', 'Lasagne', 'Burrito', 'Toast', 'Stew'],
       [
-        'On a scale of 1–10, how often do you have it?',
+        'On a scale of 1-10, how often do you have it?',
         'Would you serve it at a fancy dinner party?',
         'Sweet, savoury, or somewhere in between?',
         'Is it better hot or cold?',
         'Would a 5-year-old enjoy it?',
-        'Rate how messy it is to eat, 1–10.',
+        'Rate how messy it is to eat, 1-10.',
         'Could you eat it every day for a week?',
         'Is it a treat or an everyday thing?',
         'Would you order it at a restaurant?',
@@ -38,10 +38,10 @@
       ['Dog', 'Cat', 'Lion', 'Elephant', 'Penguin', 'Shark', 'Rabbit', 'Horse', 'Snake', 'Eagle', 'Monkey', 'Bear', 'Dolphin', 'Owl', 'Tiger', 'Frog', 'Wolf', 'Giraffe', 'Kangaroo', 'Crocodile', 'Panda', 'Fox', 'Whale', 'Hedgehog', 'Camel', 'Zebra', 'Octopus', 'Deer', 'Hippo', 'Squirrel'],
       [
         'Would you want it as a pet?',
-        'How scared of it are you, 1–10?',
+        'How scared of it are you, 1-10?',
         'Is it bigger or smaller than you?',
         'Would you find it at a zoo?',
-        'How cute is it, 1–10?',
+        'How cute is it, 1-10?',
         'Could you outrun it?',
         'Does it belong in water, on land, or in the sky?',
         'Would you put a photo of it on your wall?',
@@ -54,7 +54,7 @@
         'How often do you go there?',
         'Would you take a first date there?',
         'Is it usually loud or quiet?',
-        'Rate how much you enjoy it, 1–10.',
+        'Rate how much you enjoy it, 1-10.',
         'Would you go there alone?',
         'Is it busy on a weekend?',
         'Could you spend a whole day there?',
@@ -66,12 +66,12 @@
       ['Doctor', 'Teacher', 'Chef', 'Pilot', 'Lawyer', 'Artist', 'Firefighter', 'Farmer', 'Judge', 'Barber', 'Sailor', 'Dentist', 'Nurse', 'Plumber', 'Engineer', 'Waiter', 'Actor', 'Mechanic', 'Accountant', 'Electrician', 'Journalist', 'Librarian', 'Photographer', 'Scientist', 'Vet', 'Carpenter', 'Detective', 'Architect', 'Cleaner', 'Tailor'],
       [
         'Would you want this job?',
-        'How stressful is it, 1–10?',
+        'How stressful is it, 1-10?',
         'Do they wear a uniform?',
         'Is it well paid?',
         'Would your parents be proud?',
         'Do they work mostly indoors?',
-        'How respected is it, 1–10?',
+        'How respected is it, 1-10?',
         'Could you do it for a day?',
         'Do they work with their hands?',
         'Would you trust a stranger to do it?'
@@ -81,7 +81,7 @@
       [
         'Have you seen it more than once?',
         'Is it good for kids?',
-        'Rate it 1–10.',
+        'Rate it 1-10.',
         'Would you watch it on a first date?',
         'Is it scary?',
         'Could you quote a line from it?',
@@ -95,7 +95,7 @@
       [
         'Is it essential for a trip?',
         'Would you spend a lot of money on it?',
-        'How exciting is it, 1–10?',
+        'How exciting is it, 1-10?',
         'Is it relaxing or stressful?',
         'Would you post a photo of it?',
         'Could you go without it?',
@@ -108,13 +108,13 @@
       ['Football', 'Tennis', 'Boxing', 'Golf', 'Swimming', 'Skiing', 'Surfing', 'Cricket', 'Basketball', 'Cycling', 'Archery', 'Karate', 'Bowling', 'Hockey', 'Rugby', 'Climbing', 'Rowing', 'Badminton', 'Volleyball', 'Baseball', 'Fencing', 'Skating', 'Wrestling', 'Diving', 'Snowboarding', 'Sailing', 'Darts', 'Gymnastics', 'Squash', 'Table Tennis'],
       [
         'Could you play it right now?',
-        'How dangerous is it, 1–10?',
+        'How dangerous is it, 1-10?',
         'Do you need a team?',
         'Is it in the Olympics?',
         'Would you watch it on TV?',
         'Is it expensive to start?',
         'Do you sweat a lot doing it?',
-        'Rate how fun it looks, 1–10.',
+        'Rate how fun it looks, 1-10.',
         'Could a beginner pick it up quickly?',
         'Do you need special equipment for it?'
       ]),
@@ -124,7 +124,7 @@
         'Do you use it every day?',
         'Could you live without it?',
         'Is it in your bedroom?',
-        'How expensive is it, 1–10?',
+        'How expensive is it, 1-10?',
         'Would you notice if it disappeared?',
         'Does it use electricity?',
         'Is it bigger than a shoebox?',
@@ -137,12 +137,12 @@
       [
         'Do you own one?',
         'Could you live a week without it?',
-        'How expensive is it, 1–10?',
+        'How expensive is it, 1-10?',
         'Would you give it as a gift?',
         'Does it need charging?',
         'Is it easy for a beginner to use?',
         'Will it feel outdated in five years?',
-        'Rate how useful it is, 1–10.',
+        'Rate how useful it is, 1-10.',
         'Could you fit it in a pocket?',
         'Would a child know how to use it?'
       ]),
@@ -152,11 +152,11 @@
         'Could you play it?',
         'Is it loud or quiet?',
         'Would you want one at home?',
-        'How hard is it to learn, 1–10?',
+        'How hard is it to learn, 1-10?',
         'Is it common in a band?',
         'Would you enjoy hearing it live?',
         'Is it bigger than a backpack?',
-        'Rate how cool it looks, 1–10.',
+        'Rate how cool it looks, 1-10.',
         'Do you blow into it to play it?',
         'Would it suit a school music class?'
       ]),
@@ -167,10 +167,10 @@
         'Would you wear it to a wedding?',
         'Is it for warm or cold weather?',
         'How often do you wear it?',
-        'Is it comfortable, 1–10?',
+        'Is it comfortable, 1-10?',
         'Would you wear it to bed?',
         'Could you wear it to work?',
-        'Rate how stylish it is, 1–10.',
+        'Rate how stylish it is, 1-10.',
         'Would you wear it on a hot day?',
         'Does it go on your top half or bottom half?'
       ]),
@@ -180,11 +180,11 @@
         'Do you drink it often?',
         'Is it better hot or cold?',
         'Would you order it at a cafe?',
-        'How sweet is it, 1–10?',
+        'How sweet is it, 1-10?',
         'Would a child enjoy it?',
         'Is it good in the morning?',
         'Would you serve it at a party?',
-        'Rate how refreshing it is, 1–10.',
+        'Rate how refreshing it is, 1-10.',
         'Would you drink it on a hot day?',
         'Do you usually have it with a meal?'
       ]),
@@ -194,11 +194,11 @@
         'Do you look forward to it?',
         'Would you dress up for it?',
         'Is it usually loud or quiet?',
-        'How much do you enjoy it, 1–10?',
+        'How much do you enjoy it, 1-10?',
         'Is it better with a big crowd?',
         'Would you travel far for it?',
         'Does it usually involve food?',
-        'Rate how memorable it is, 1–10.',
+        'Rate how memorable it is, 1-10.',
         'Would you invite your whole family?',
         'Does it happen at a set time of year?'
       ]),
@@ -208,11 +208,11 @@
         'Have you seen one in person?',
         'Is it calming or scary?',
         'Would you want to be near it right now?',
-        'How beautiful is it, 1–10?',
+        'How beautiful is it, 1-10?',
         'Would you photograph it?',
         'Is it more common in summer?',
         'Could it be dangerous?',
-        'Rate how impressive it is, 1–10.',
+        'Rate how impressive it is, 1-10.',
         'Would you tell others about seeing it?',
         'Is it something that happens quickly?'
       ]),
@@ -226,7 +226,7 @@
         'Is it on the left and right sides?',
         'Would it hurt a lot if you injured it?',
         'Can you move it on purpose?',
-        'Rate how important it is, 1–10.',
+        'Rate how important it is, 1-10.',
         'Is it bigger than your hand?',
         'Can other people usually see it?'
       ]),
@@ -235,12 +235,12 @@
       [
         'Have you ever ridden in one?',
         'Does it travel on land, water, or in the air?',
-        'How fast can it go, 1–10?',
+        'How fast can it go, 1-10?',
         'Would you feel safe in it?',
         'Could you afford to own one?',
         'Does it need fuel to move?',
         'Is it bigger than a house?',
-        'Rate how fun it would be to ride, 1–10.',
+        'Rate how fun it would be to ride, 1-10.',
         'Would you use it for a daily commute?',
         'Can it carry more than four people?'
       ]),
@@ -249,12 +249,12 @@
       [
         'Have you eaten it in the last month?',
         'Is it served hot or cold?',
-        'How sweet is it, 1–10?',
+        'How sweet is it, 1-10?',
         'Would you order it at a restaurant?',
         'Could you make it at home?',
         'Is it easy to share?',
         'Would a child love it?',
-        'Rate how indulgent it is, 1–10.',
+        'Rate how indulgent it is, 1-10.',
         'Do you eat it with a spoon?',
         'Would you serve it at a celebration?'
       ])

@@ -1,4 +1,4 @@
-/* build.js (Daybreak) — composes assets/app.html from @partydeck/core + this app's src/*. */
+/* build.js (Daybreak) - composes assets/app.html from @partydeck/core + this app's src/*. */
 'use strict';
 var path = require('path');
 function loadCompose() {

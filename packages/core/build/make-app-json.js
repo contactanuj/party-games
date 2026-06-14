@@ -1,5 +1,5 @@
 /*
- * make-app-json.js — generate an app's app.json from its identity.json + the shared template,
+ * make-app-json.js - generate an app's app.json from its identity.json + the shared template,
  * so the four apps never drift on the common Expo config. Run via `npm run gen:config`.
  *
  * identity.json (per app): { name, slug, package, bgColor, accent, version }

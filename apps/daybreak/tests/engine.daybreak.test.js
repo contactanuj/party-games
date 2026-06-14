@@ -1,7 +1,7 @@
 /*
- * engine.daybreak.test.js — Daybreak's new mechanics on the shared engine:
+ * engine.daybreak.test.js - Daybreak's new mechanics on the shared engine:
  * shield token, Alpha Wolf's reserved center-werewolf, P.I. transform, Witch center-swap,
- * Artifact end-game overrides, Bodyguard vote protection, Revealer face-up — plus fuzz,
+ * Artifact end-game overrides, Bodyguard vote protection, Revealer face-up - plus fuzz,
  * determinism, and the no-leak boundary. Run: node tests/engine.daybreak.test.js
  */
 'use strict';

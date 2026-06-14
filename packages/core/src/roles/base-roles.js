@@ -1,5 +1,5 @@
 /*
- * base-roles.js — the shared base role definitions used by more than one game in the family
+ * base-roles.js - the shared base role definitions used by more than one game in the family
  * (Werewolf is just these; Daybreak/Vampire/Alien reuse them and add their own). Pure data +
  * small act()/inputs() handlers that drive the engine. No DOM.
  *
@@ -78,7 +78,7 @@
       narration: { open: 'Masons, wake up and look for the other Mason.', close: 'Masons, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.identifyAllies(function (s) { return ctx.actingRole(s) === 'mason'; }); },
-      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair — use 0 or 2.' }]; return []; }
+      validate: function (q) { if (q.counts.mason % 2 !== 0) return [{ level: 'error', text: 'Masons come as a pair - use 0 or 2.' }]; return []; }
     },
 
     {
@@ -171,12 +171,12 @@
       blurb: 'You hate your life. You win only if you die. You are on no team.'
     },
 
-    { id: 'villager', name: 'Villager', team: 'village', wake: null, blurb: 'No special ability — but definitely not a Werewolf.' },
+    { id: 'villager', name: 'Villager', team: 'village', wake: null, blurb: 'No special ability - but definitely not a Werewolf.' },
 
     {
       id: 'doppelganger', name: 'Doppelgänger', team: function () { return 'village'; }, wake: -7, maxCopies: 1,
       blurb: 'View one player\'s card and become that role for the rest of the game.',
-      prompt: 'View one player\'s card — you become that role.',
+      prompt: 'View one player\'s card - you become that role.',
       narration: { open: 'Doppelgänger, wake up and look at one other player\'s card. You are now that role.', close: 'Doppelgänger, close your eyes.' },
       inputs: function (ctx) { return [{ id: 'target', type: 'pickPlayer', label: 'Copy whose card?', exclude: [ctx.self] }]; },
       act: function (ctx, inputs) {
@@ -185,7 +185,7 @@
         ctx.copyRole(copied);
         if (ctx.roleHasWake(copied)) ctx.reWakeSelfAs(copied);
       },
-      validate: function () { return [{ level: 'warn', text: 'The Doppelgänger adds the most complexity — best added once the table knows the other roles.' }]; }
+      validate: function () { return [{ level: 'warn', text: 'The Doppelgänger adds the most complexity - best added once the table knows the other roles.' }]; }
     }
   ];
 

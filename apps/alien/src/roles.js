@@ -1,5 +1,5 @@
 /*
- * roles.js (Alien) — village roles plus the Alien team and several app-driven / solo roles.
+ * roles.js (Alien) - village roles plus the Alien team and several app-driven / solo roles.
  * Some roles take a per-game ACTION VARIANT chosen at deal time (state.variants[seat]) so the
  * same role plays differently each game (the "app-driven" feel): Oracle (which relic), Alien
  * (probe vs convert), Exposer (how many center cards), Mortician (how many neighbors).
@@ -26,7 +26,7 @@
       id: 'oracle', name: 'Oracle', team: 'village', wake: -9, maxCopies: 1, variants: 3,
       blurb: 'The signal shows you one relic in the center each game.',
       prompt: 'The signal reveals a center relic to you.',
-      narration: { open: 'Oracle, wake up — the signal shows you a center card.', close: 'Oracle, close your eyes.' },
+      narration: { open: 'Oracle, wake up - the signal shows you a center card.', close: 'Oracle, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.lookCard(ctx.centerPos(ctx.myVariant() % ctx.centerCount)); }
     },
@@ -34,7 +34,7 @@
     {
       id: 'alien', name: 'Alien', team: 'alien', alien: true, wake: 1, maxCopies: 3, variants: 2,
       narrationGroup: 'alien',
-      blurb: 'Wake with the others. Each game your tech does something different — probe a card, or convert a human.',
+      blurb: 'Wake with the others. Each game your tech does something different - probe a card, or convert a human.',
       prompt: 'Find the others, then use your tech.',
       narration: { open: 'Aliens, wake and find each other, then use your technology.', close: 'Aliens, close your eyes.' },
       inputs: function (ctx) {
@@ -53,7 +53,7 @@
       id: 'synthetic', name: 'Synthetic', team: 'synth', solo: true, alien: true, wake: 1.0, maxCopies: 1,
       narrationGroup: 'alien',
       blurb: 'You wake with the Aliens, but your tech is too dangerous for anyone. You win only if you are eliminated.',
-      prompt: 'Find the Aliens — but you serve only yourself.',
+      prompt: 'Find the Aliens - but you serve only yourself.',
       narration: { open: 'The Synthetic wakes with the Aliens.', close: 'The Synthetic closes its eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
@@ -63,7 +63,7 @@
       id: 'cow', name: 'Cow', team: 'village', wake: 1.6, maxCopies: 1,
       blurb: 'You sense whether an Alien sits right beside you.',
       prompt: 'Sense the night around you.',
-      narration: { open: 'Cow, wake up — you sense if an Alien is beside you.', close: 'Cow, close your eyes.' },
+      narration: { open: 'Cow, wake up - you sense if an Alien is beside you.', close: 'Cow, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { var n = ctx.neighbors(ctx.self); ctx.learn({ kind: 'cowSense', alienAdjacent: n.some(function (s) { return ctx.roleHasFlag(ctx.actingRole(s), 'alien'); }) }); }
     },
@@ -71,7 +71,7 @@
     {
       id: 'groob', name: 'Groob', team: 'alien', alien: true, wake: 1.3, maxCopies: 1,
       narrationGroup: 'alien',
-      blurb: 'An Alien — but if Zerb is also in play, you are frenemies and win only if Zerb dies and you live.',
+      blurb: 'An Alien - but if Zerb is also in play, you are frenemies and win only if Zerb dies and you live.',
       prompt: 'Find the others.',
       narration: { open: 'Groob wakes with the Aliens.', close: 'Groob closes their eyes.' },
       inputs: function () { return []; },
@@ -80,7 +80,7 @@
     {
       id: 'zerb', name: 'Zerb', team: 'alien', alien: true, wake: 1.31, maxCopies: 1,
       narrationGroup: 'alien',
-      blurb: 'An Alien — but if Groob is also in play, you are frenemies and win only if Groob dies and you live.',
+      blurb: 'An Alien - but if Groob is also in play, you are frenemies and win only if Groob dies and you live.',
       prompt: 'Find the others.',
       narration: { open: 'Zerb wakes with the Aliens.', close: 'Zerb closes their eyes.' },
       inputs: function () { return []; },
@@ -91,7 +91,7 @@
       id: 'leader', name: 'Leader', team: 'village', wake: 3.3, maxCopies: 1,
       blurb: 'You see who the Aliens are. (If both Groob and Zerb play, you win only if both of them survive.)',
       prompt: 'See who the Aliens are.',
-      narration: { open: 'Leader, wake up — all Aliens, raise a thumb.', close: 'Aliens, lower your thumbs. Leader, close your eyes.' },
+      narration: { open: 'Leader, wake up - all Aliens, raise a thumb.', close: 'Aliens, lower your thumbs. Leader, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { ctx.identifyAllies(alienPred(ctx)); }
     },
@@ -148,7 +148,7 @@
       id: 'mortician', name: 'Mortician', team: 'mortician', solo: true, wake: 13.1, maxCopies: 1, variants: 3,
       blurb: 'You may peek at some neighbors. You win if one of your neighbors is eliminated.',
       prompt: 'You inspect those beside you.',
-      narration: { open: 'Mortician, wake up — you may inspect your neighbors.', close: 'Mortician, close your eyes.' },
+      narration: { open: 'Mortician, wake up - you may inspect your neighbors.', close: 'Mortician, close your eyes.' },
       inputs: function () { return []; },
       act: function (ctx) { var v = ctx.myVariant(), n = ctx.neighbors(ctx.self); for (var i = 0; i < v && i < n.length; i++) ctx.lookCardSeat(n[i]); if (v === 0) ctx.noop('The mortician rests.'); }
     },
@@ -172,7 +172,7 @@
 
     var winners = {}; function add(t) { winners[t] = true; }
     var someoneDied = deaths.length > 0;
-    // "alien in play" for village/alien outcome means a seat actually on the ALIEN TEAM — the
+    // "alien in play" for village/alien outcome means a seat actually on the ALIEN TEAM - the
     // Synthetic carries the alien flag for night/targeting but is solo, so it must NOT make the
     // alien team "win" on its own.
     var aliensInPlay = 0, anyAlienDied = false, alienTeamInPlay = 0;

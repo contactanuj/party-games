@@ -1,4 +1,4 @@
-/* build.js (Out of the Loop) — composes assets/app.html from @partydeck/core + this app's src/*. */
+/* build.js (Out of the Loop) - composes assets/app.html from @partydeck/core + this app's src/*. */
 'use strict';
 var path = require('path');
 function loadCompose() {

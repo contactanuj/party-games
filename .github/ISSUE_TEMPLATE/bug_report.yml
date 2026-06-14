@@ -14,7 +14,7 @@ body:
     attributes:
       label: Is this an information leak?
       description: A shared screen revealing a role / secret word / location / who the outsider is, is high severity.
-      options: ['No', 'Yes — a shared screen revealed hidden info']
+      options: ['No', 'Yes - a shared screen revealed hidden info']
     validations:
       required: true
   - type: textarea

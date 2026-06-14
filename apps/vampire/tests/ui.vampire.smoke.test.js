@@ -1,5 +1,5 @@
 /*
- * ui.vampire.smoke.test.js — drives full Vampire games through the real shared UI and asserts
+ * ui.vampire.smoke.test.js - drives full Vampire games through the real shared UI and asserts
  * the no-leak boundary on handoff gates, decoy night screens, the day screen, and vote screens.
  * Run: node tests/ui.vampire.smoke.test.js
  */
@@ -72,7 +72,7 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
-console.log('\n# Vampire UI smoke — full games, no-leak on shared screens');
+console.log('\n# Vampire UI smoke - full games, no-leak on shared screens');
 playOneGame('game A');
 playOneGame('game B (3 bots)', 3);
 

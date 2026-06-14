@@ -1,5 +1,5 @@
 /*
- * roles.js (Werewolf) — Werewolf is exactly the shared base roles, plus presets/meta.
+ * roles.js (Werewolf) - Werewolf is exactly the shared base roles, plus presets/meta.
  * Reads the shared base from window.PARTY_BASE (browser, inlined) or require (Node).
  * UMD: Node tests require() this; the inlined browser bundle reads window.PARTY_GAME.
  */

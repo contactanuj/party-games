@@ -1,5 +1,5 @@
 /*
- * sound.js — tiny synthesized SFX via WebAudio. window.PartySound.play(name).
+ * sound.js - tiny synthesized SFX via WebAudio. window.PartySound.play(name).
  * No assets, no network. Safe no-op if WebAudio is unavailable or muted.
  */
 (function () {

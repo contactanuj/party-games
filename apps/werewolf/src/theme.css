@@ -1,4 +1,4 @@
-/* theme.css (Werewolf) — only CSS custom-property overrides. base.css references these tokens.
+/* theme.css (Werewolf) - only CSS custom-property overrides. base.css references these tokens.
  * Moonlit-forest palette: deep blue-night background, blood-red accent. No role-coded colors. */
 :root {
   --bg: #0e1117;
