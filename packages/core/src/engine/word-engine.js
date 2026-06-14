@@ -179,6 +179,50 @@
     }
 
     // -------------------------------------------------------------------------
+    // Count authority. The MOST outsiders a player count can support while leaving the informed
+    // players a strict majority (so the hunt is always fair). This is the single source of truth
+    // for the "config must respect the player count" rule — the UI's steppers and normalizeConfig
+    // both read it, so they can never drift from validateConfig.
+    //   pc 3->1  4->1  5->2  6->2  7->3  8->3  9->4 ...
+    // -------------------------------------------------------------------------
+    function maxOutsiders(pc) { return Math.max(1, Math.ceil(pc / 2) - 1); }
+
+    function clampInt(v, lo, hi, dflt) {
+      v = Math.round(Number(v));
+      if (!isFinite(v)) v = dflt;
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    // normalizeConfig — coerce ANY config into a valid one for its (clamped) player count, in place.
+    // After this, validateConfig() can only fail on things the user must type (e.g. a blank name) or
+    // content selection — never on a count-vs-config contradiction. The UI calls this on load and
+    // after every change so the screen can never present, or start, a self-contradictory setup.
+    function normalizeConfig(config) {
+      var c = config || {};
+      var minP = def.minPlayers || 3, maxP = def.maxPlayers || 12;
+      c.playerCount = clampInt(c.playerCount, minP, maxP, minP);
+      var pc = c.playerCount;
+      // names: exactly pc entries
+      var names = (c.playerNames || []).slice(0, pc);
+      while (names.length < pc) names.push('Player ' + (names.length + 1));
+      c.playerNames = names;
+      // counts that MUST respect the player count
+      c.botCount = clampInt(c.botCount == null ? 0 : c.botCount, 0, pc - 1, 0);
+      c.outsiderCount = clampInt(c.outsiderCount == null ? 1 : c.outsiderCount, 1, maxOutsiders(pc), 1);
+      // other numeric guards (kept in sensible ranges so a stale/hand-edited value can't break a game)
+      c.cluesPerPlayer = clampInt(c.cluesPerPlayer == null ? 1 : c.cluesPerPlayer, 1, 5, 1);
+      c.questionsPerRound = clampInt(c.questionsPerRound == null ? 3 : c.questionsPerRound, 1, 12, 3);
+      if (c.guessMode !== 'none') c.outsiderGuesses = clampInt(c.outsiderGuesses == null ? 1 : c.outsiderGuesses, 1, 5, 1);
+      if (c.scoring) c.winTarget = clampInt(c.winTarget == null ? 7 : c.winTarget, 1, 50, 7);
+      if (c.timerSeconds != null) c.timerSeconds = Math.max(0, clampInt(c.timerSeconds, 0, 36000, 0));
+      if (c.revealSeconds != null) c.revealSeconds = Math.max(0, clampInt(c.revealSeconds, 0, 600, 0));
+      // variant / interaction must be ones this game actually supports
+      if (ALLOWED_MODELS.indexOf(modelOf(c)) === -1) c.contentModel = CONTENT_MODEL;
+      if (def.allowedInteractions && def.allowedInteractions.indexOf(c.interaction) === -1) c.interaction = DEFAULT_INTERACTION;
+      return c;
+    }
+
+    // -------------------------------------------------------------------------
     // Validation. errors block start; warnings are off-spec but still playable.
     // This is the guardrail that the "all variations" config can never produce a
     // broken or unwinnable game. `library` (optional) lets us warn on empty packs.
@@ -189,9 +233,10 @@
       if (!c || typeof c !== 'object') return { ok: false, errors: ['No configuration provided.'], warnings: [] };
 
       var pc = c.playerCount;
-      var minP = def.minPlayers || 3;
+      var minP = def.minPlayers || 3, maxP = def.maxPlayers || 12;
+      if (typeof pc !== 'number' || pc !== Math.round(pc)) errors.push('Player count must be a whole number.');
       if (!(pc >= minP)) errors.push('You need at least ' + minP + ' players.');
-      if (def.maxPlayers && pc > def.maxPlayers) warnings.push('More than ' + def.maxPlayers + ' players is outside the tested range — balance is not guaranteed.');
+      if (pc > maxP) errors.push('This game supports at most ' + maxP + ' players.');
 
       // Names: one per player, non-empty; duplicates are a soft warning.
       var names = c.playerNames || [];
@@ -214,8 +259,12 @@
         }
       }
 
+      // Bot count must be a whole number too.
+      if (c.botCount != null && c.botCount !== Math.round(c.botCount)) errors.push('Bot count must be a whole number.');
+
       // Outsider count: must leave a clear majority of insiders, or the hunt is impossible.
       var oc = c.outsiderCount;
+      if (oc != null && oc !== Math.round(oc)) errors.push('Number of ' + outsiderLabel(2) + ' must be a whole number.');
       if (!(oc >= 1)) errors.push('There must be at least 1 ' + OUTSIDER.label + '.');
       else if (oc >= pc) errors.push('The ' + outsiderLabel(2) + ' cannot be everyone — leave players in the know.');
       else if (oc >= Math.ceil(pc / 2)) errors.push('With ' + oc + ' ' + outsiderLabel(oc) + ' and only ' + pc + ' players, the informed players are not a majority — the hunt is unfair. Use at most ' + (Math.ceil(pc / 2) - 1) + '.');
@@ -927,6 +976,7 @@
       DEALER_ROTATIONS: DEALER_ROTATIONS, INTERACTIONS: INTERACTIONS, GUESS_MODES: GUESS_MODES, OUTCOMES: OUTCOMES,
       // config
       defaultConfig: defaultConfig, defaultNames: defaultNames, validateConfig: validateConfig,
+      maxOutsiders: maxOutsiders, normalizeConfig: normalizeConfig,
       // content
       packMatchesConfig: packMatchesConfig, availablePacks: availablePacks, normItem: normItem,
       // lifecycle

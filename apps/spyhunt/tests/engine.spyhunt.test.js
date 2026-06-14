@@ -17,9 +17,9 @@ function section(n) { console.log('\n# ' + n); }
 var E = WordCore.createEngine(GAME);
 
 section('content sanity');
-ok(LIB.length === 3, 'three themed location packs');
+ok(LIB.length >= 3, 'multiple themed location packs (' + LIB.length + ')');
 ok(LIB.every(function (p) { return p.type === 'locations'; }), 'all packs are location packs');
-ok(LIB.every(function (p) { return p.items.length === 10; }), 'each pack has 10 locations');
+ok(LIB.every(function (p) { return p.items.length >= 6; }), 'each pack has enough locations for a meaningful guess');
 ok(LIB.every(function (p) { return p.items.every(function (it) { return it.roles && it.roles.length === 7; }); }), 'every location has 7 roles');
 
 section('defaults validate; agents share location + role, spy gets neither');

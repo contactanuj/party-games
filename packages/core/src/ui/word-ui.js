@@ -52,11 +52,11 @@
   function loadConfig() {
     try {
       var saved = JSON.parse(localStorage.getItem(LS) || 'null');
-      if (saved && saved.playerCount) { var d = engine.defaultConfig(saved.playerCount, saved.playerNames); for (var k in saved) if (saved.hasOwnProperty(k)) d[k] = saved[k]; return d; }
+      if (saved && saved.playerCount) { var d = engine.defaultConfig(saved.playerCount, saved.playerNames); for (var k in saved) if (saved.hasOwnProperty(k)) d[k] = saved[k]; return engine.normalizeConfig(d); }
     } catch (e) {}
     var c = engine.defaultConfig(5);
     applyVariant(c, META.defaultVariant);
-    return c;
+    return engine.normalizeConfig(c);
   }
   function saveConfig() { try { localStorage.setItem(LS, JSON.stringify(UI.config)); } catch (e) {} }
   function applyVariant(c, id) {
@@ -134,12 +134,15 @@
     if (META.variants && META.variants.length) {
       add(s, fieldLabel('Mode'));
       var chips = E('div', 'grid');
+      var maxO = engine.maxOutsiders(UI.config.playerCount);
       META.variants.forEach(function (v) {
+        var needOut = (v.patch && v.patch.outsiderCount) || 1;
+        var fits = needOut <= maxO;                 // a variant that asks for more outsiders than the count allows is disabled
         var sel = UI.config._variant === v.id;
-        var c = E('div', 'choice' + (sel ? ' sel' : ''));
+        var c = E('div', 'choice' + (sel ? ' sel' : '') + (fits ? '' : ' dead'));
         add(c, E('div', null, v.name));
-        add(c, E('div', 'small muted', v.blurb));
-        c.onclick = function () { SND.play('tap'); applyVariant(UI.config, v.id); clampOutsiders(); render(); };
+        add(c, E('div', 'small muted', fits ? v.blurb : ('Needs ' + (2 * needOut + 1) + '+ players')));
+        if (fits) c.onclick = function () { SND.play('tap'); applyVariant(UI.config, v.id); clampOutsiders(); render(); };
         add(chips, c);
       });
       add(s, chips);
@@ -167,11 +170,9 @@
     app.appendChild(s);
   }
 
-  function clampOutsiders() {
-    var maxOut = Math.max(1, Math.ceil(UI.config.playerCount / 2) - 1);
-    if (UI.config.outsiderCount > maxOut) UI.config.outsiderCount = maxOut;
-    if (UI.config.botCount > UI.config.playerCount - 1) UI.config.botCount = UI.config.playerCount - 1;
-  }
+  // Single authority: the engine clamps every count-relative field to the player count. Called
+  // after any change to playerCount / variant / bots so the UI can never hold an invalid config.
+  function clampOutsiders() { engine.normalizeConfig(UI.config); }
   function mergeConfig(base, old) { for (var k in old) if (old.hasOwnProperty(k) && base.hasOwnProperty(k) && k !== 'playerNames' && k !== 'playerCount') base[k] = old[k]; base._variant = old._variant; return base; }
 
   // ----------------------------- SETTINGS (shared, no secrets) -----------------------------
@@ -193,7 +194,7 @@
     var c = UI.config;
     // Roles
     add(s, E('h2', null, 'Roles'));
-    if (show('outsiderCount')) add(s, intRow(L('outsiderCount', 'Number of ' + OUTS), c.outsiderCount, 1, Math.max(1, Math.ceil(c.playerCount / 2) - 1), function (v) { c.outsiderCount = v; }));
+    if (show('outsiderCount')) add(s, intRow(L('outsiderCount', 'Number of ' + OUTS), c.outsiderCount, 1, engine.maxOutsiders(c.playerCount), function (v) { c.outsiderCount = v; }));
     if (show('giveOutsiderHint')) add(s, toggleRow(L('giveOutsiderHint', 'Give the ' + OUT + ' a category hint'), c.giveOutsiderHint, function (v) { c.giveOutsiderHint = v; }));
 
     // Interaction

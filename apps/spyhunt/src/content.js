@@ -57,10 +57,66 @@
     loc('Wartime Camp', ['Resistance Fighter', 'Radio Operator', 'Scout', 'Medic', 'Cook', 'Prisoner', 'Soldier'])
   ];
 
+  var WORKPLACES = [
+    loc('Law Firm', ['Senior Partner', 'Paralegal', 'Court Clerk', 'Receptionist', 'Intern', 'Litigator', 'Client']),
+    loc('TV Studio', ['News Anchor', 'Floor Manager', 'Camera Operator', 'Teleprompter Operator', 'Makeup Artist', 'Producer', 'Audience Member']),
+    loc('Newspaper Office', ['Editor-in-Chief', 'Reporter', 'Columnist', 'Photographer', 'Copy Editor', 'Cartoonist', 'Visiting Source']),
+    loc('Tech Startup', ['Founder', 'Software Engineer', 'Product Manager', 'Designer', 'Office Manager', 'Intern', 'Investor']),
+    loc('Factory', ['Floor Supervisor', 'Assembly Worker', 'Forklift Driver', 'Quality Inspector', 'Maintenance Technician', 'Safety Officer', 'Delivery Driver']),
+    loc('Power Plant', ['Control Room Operator', 'Engineer', 'Turbine Technician', 'Safety Inspector', 'Electrician', 'Plant Manager', 'Auditor']),
+    loc('Bakery', ['Head Baker', 'Pastry Chef', 'Cake Decorator', 'Cashier', 'Apprentice', 'Delivery Driver', 'Customer']),
+    loc('Bookshop', ['Owner', 'Bookseller', 'Stock Clerk', 'Cashier', 'Cafe Barista', 'Visiting Author', 'Customer']),
+    loc('Veterinary Clinic', ['Veterinarian', 'Vet Technician', 'Receptionist', 'Kennel Attendant', 'Groomer', 'Surgeon', 'Pet Owner']),
+    loc('Recording Studio', ['Sound Engineer', 'Producer', 'Session Musician', 'Vocalist', 'Mixing Engineer', 'Studio Manager', 'Guest Artist'])
+  ];
+
+  var WORLD = [
+    loc('Ski Resort', ['Ski Instructor', 'Lift Operator', 'Patroller', 'Snowboarder', 'Equipment Renter', 'Resort Manager', 'Tourist']),
+    loc('Safari', ['Safari Guide', 'Tracker', 'Driver', 'Wildlife Photographer', 'Ranger', 'Camp Cook', 'Tourist']),
+    loc('Vineyard', ['Winemaker', 'Grape Picker', 'Sommelier', 'Cellar Master', 'Estate Owner', 'Tour Guide', 'Visitor']),
+    loc('Lighthouse', ['Lighthouse Keeper', 'Coast Guard', 'Engineer', 'Radio Operator', 'Supply Boat Pilot', 'Historian', 'Tourist']),
+    loc('Monastery', ['Abbot', 'Monk', 'Novice', 'Gardener', 'Librarian', 'Bell Ringer', 'Pilgrim']),
+    loc('Aquarium', ['Marine Biologist', 'Aquarist', 'Diver', 'Tour Guide', 'Ticket Seller', 'Gift Shop Clerk', 'Visitor']),
+    loc('Botanical Garden', ['Botanist', 'Gardener', 'Greenhouse Keeper', 'Tour Guide', 'Researcher', 'Groundskeeper', 'Visitor']),
+    loc('Night Market', ['Food Stall Vendor', 'Street Musician', 'Fortune Teller', 'Souvenir Seller', 'Cook', 'Pickpocket', 'Shopper']),
+    loc('Ski Lodge', ['Concierge', 'Chef', 'Fireplace Attendant', 'Bartender', 'Housekeeper', 'Ski Guide', 'Guest']),
+    loc('Harbor', ['Harbor Master', 'Dock Worker', 'Fisherman', 'Customs Officer', 'Crane Operator', 'Sailor', 'Tourist'])
+  ];
+
+  var FANTASY = [
+    loc('Wizard’s Tower', ['Archmage', 'Apprentice', 'Alchemist', 'Familiar', 'Scroll Keeper', 'Summoned Demon', 'Wandering Adventurer']),
+    loc('Viking Longship', ['Jarl', 'Shieldmaiden', 'Oarsman', 'Navigator', 'Skald', 'Captured Slave', 'Raider']),
+    loc('Royal Court', ['King', 'Queen', 'Jester', 'Royal Advisor', 'Lady-in-Waiting', 'Executioner', 'Foreign Envoy']),
+    loc('Knights’ Castle', ['Lord', 'Knight', 'Squire', 'Blacksmith', 'Court Wizard', 'Stable Boy', 'Visiting Bard']),
+    loc('Dragon’s Lair', ['Dragon', 'Treasure Hunter', 'Captured Princess', 'Knight Slayer', 'Hoard Guardian', 'Cave Goblin', 'Lost Traveler']),
+    loc('Ancient Colosseum', ['Gladiator', 'Emperor', 'Beast Handler', 'Slave Master', 'Charioteer', 'Vestal Virgin', 'Spectator']),
+    loc('Pirate Cove', ['Pirate Captain', 'Quartermaster', 'Map Forger', 'Tavern Wench', 'Marooned Sailor', 'Treasure Buyer', 'Stowaway']),
+    loc('Haunted Mansion', ['Ghost', 'Butler', 'Medium', 'Paranormal Investigator', 'Grave Caretaker', 'Heir', 'Curious Trespasser']),
+    loc('Wild West Saloon', ['Gunslinger', 'Bartender', 'Saloon Singer', 'Card Sharp', 'Sheriff', 'Piano Player', 'Drifter']),
+    loc('Egyptian Tomb', ['Pharaoh’s Mummy', 'Tomb Raider', 'Archaeologist', 'High Priest', 'Embalmer', 'Tomb Guardian', 'Grave Robber'])
+  ];
+
+  var MODERN = [
+    loc('Gym', ['Personal Trainer', 'Yoga Instructor', 'Front Desk Clerk', 'Bodybuilder', 'Equipment Technician', 'Smoothie Bar Barista', 'First-Time Member']),
+    loc('Nightclub', ['DJ', 'Bouncer', 'Bartender', 'Coat Check Clerk', 'Promoter', 'Go-Go Dancer', 'Clubgoer']),
+    loc('Wedding', ['Bride', 'Groom', 'Officiant', 'Wedding Planner', 'Caterer', 'Photographer', 'Plus-One Guest']),
+    loc('Escape Room', ['Game Master', 'Puzzle Designer', 'Actor', 'Receptionist', 'Technician', 'Team Captain', 'Confused Player']),
+    loc('Food Truck Festival', ['Truck Owner', 'Line Cook', 'Order Taker', 'Health Inspector', 'Stage Performer', 'Festival Organizer', 'Hungry Foodie']),
+    loc('Coworking Space', ['Community Manager', 'Freelancer', 'Startup Founder', 'Barista', 'IT Support', 'Cleaner', 'Day-Pass Visitor']),
+    loc('Dentist Office', ['Dentist', 'Dental Hygienist', 'Receptionist', 'Orthodontist', 'Dental Assistant', 'Office Manager', 'Nervous Patient']),
+    loc('Subway Train', ['Train Operator', 'Conductor', 'Transit Cop', 'Buskers', 'Maintenance Worker', 'Pickpocket', 'Commuter']),
+    loc('Apple-style Store', ['Store Manager', 'Genius Bar Tech', 'Sales Associate', 'Product Demonstrator', 'Security Guard', 'Trainer', 'Browsing Shopper']),
+    loc('Comic Convention', ['Cosplayer', 'Comic Artist', 'Booth Vendor', 'Voice Actor', 'Panel Moderator', 'Security Volunteer', 'Fan Attendee'])
+  ];
+
   var PACKS = [
     { id: 'everyday', name: 'Everyday', type: 'locations', items: EVERYDAY },
     { id: 'out', name: 'Out & About', type: 'locations', items: OUT_AND_ABOUT },
-    { id: 'adventure', name: 'Adventure', type: 'locations', items: ADVENTURE }
+    { id: 'adventure', name: 'Adventure', type: 'locations', items: ADVENTURE },
+    { id: 'work', name: 'Workplaces', type: 'locations', items: WORKPLACES },
+    { id: 'world', name: 'Around the World', type: 'locations', items: WORLD },
+    { id: 'fantasy', name: 'Fantasy & History', type: 'locations', items: FANTASY },
+    { id: 'modern', name: 'Modern Life', type: 'locations', items: MODERN }
   ];
 
   return { packs: PACKS };
