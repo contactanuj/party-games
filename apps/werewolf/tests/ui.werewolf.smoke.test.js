@@ -109,6 +109,25 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
+console.log('\n# config integrity — deck always = players + center; cannot be set against the count');
+(function () {
+  function deck() { var m = html().match(/(\d+) \/ (\d+) cards/); return m ? { have: +m[1], need: +m[2] } : null; }
+  clickAct('new');
+  // changing the player count always leaves a valid deck and an enabled Start
+  for (var i = 0; i < 6; i++) { if (byAct('pc+')) clickAct('pc+'); var d = deck(); ok(d && d.have === d.need, 'deck matches need after pc+ (' + JSON.stringify(d) + ')'); ok(byAct('start') && !byAct('start').disabled, 'Start enabled at a valid count'); }
+  for (var j = 0; j < 8; j++) { if (byAct('pc-')) clickAct('pc-'); var d2 = deck(); ok(d2 && d2.have === d2.need, 'deck matches need after pc-'); }
+  // adding a special role keeps the deck size locked (swaps out a Villager)
+  var before = deck();
+  var plus = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; })[0];
+  if (plus) { plus.click(); var after = deck(); ok(after.have === after.need && after.have === before.have, 'adding a role keeps the deck size locked'); }
+  // no matter how many adds, the deck can never exceed the needed count
+  for (var k = 0; k < 60; k++) { var p = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; }); if (!p.length) break; p[0].click(); }
+  var d3 = deck();
+  ok(d3 && d3.have === d3.need, 'deck stays exactly = need after exhaustive adds (' + JSON.stringify(d3) + ')');
+  ok(byAct('start') && !byAct('start').disabled, 'still a startable (valid) configuration');
+  clickAct('home');
+})();
+
 console.log('\n# UI smoke — full pass-and-play games, no-leak assertions');
 playOneGame('game A');
 playOneGame('game B');

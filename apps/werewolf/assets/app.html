@@ -1753,6 +1753,32 @@ h1 { text-shadow: 0 2px 18px rgba(178,59,59,.25); }
   function roleCounts() {
     var counts = {}; draft.roleSet.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; }); return counts;
   }
+  // The deck must ALWAYS hold exactly playerCount + centerCount cards (the rule of the game).
+  // Villagers are the filler: adding a special role swaps out a Villager, removing one swaps it
+  // back — so the count can never be configured against the player count.
+  function neededCards() { return draft.playerCount + draft.centerCount; }
+  function countOf(id) { return draft.roleSet.filter(function (x) { return x === id; }).length; }
+  function villagerCount() { return countOf('villager'); }
+  function stepFor(id) { return id === 'mason' ? 2 : 1; } // Masons come as a pair
+  function canAddRole(id) {
+    if (id === 'villager') return false; // villagers are derived from the remainder
+    var r = REG[id], step = stepFor(id);
+    if (r && r.maxCopies != null && countOf(id) + step > r.maxCopies) return false;
+    return villagerCount() >= step; // need filler villagers to swap out
+  }
+  function canRemoveRole(id) { return id !== 'villager' && countOf(id) > 0; }
+  function addRole(id) {
+    if (!canAddRole(id)) return;
+    var step = stepFor(id);
+    for (var i = 0; i < step; i++) { var vi = draft.roleSet.lastIndexOf('villager'); if (vi !== -1) draft.roleSet.splice(vi, 1); draft.roleSet.push(id); }
+    render();
+  }
+  function removeRole(id) {
+    if (!canRemoveRole(id)) return;
+    var step = Math.min(stepFor(id), countOf(id));
+    for (var i = 0; i < step; i++) { var ri = draft.roleSet.indexOf(id); if (ri !== -1) draft.roleSet.splice(ri, 1); draft.roleSet.push('villager'); }
+    render();
+  }
   function roleEditor() {
     var counts = roleCounts();
     var ordered = DEF.roles.slice().sort(function (a, b) {
@@ -1760,18 +1786,27 @@ h1 { text-shadow: 0 2px 18px rgba(178,59,59,.25); }
     });
     return ordered.map(function (r) {
       var c = counts[r.id] || 0;
+      if (r.id === 'villager') {
+        // derived filler — shown, not directly editable
+        return '<div class="panel"><div class="row">' +
+          '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">fills the deck to the right size</span></div>' +
+          '<span class="val" style="min-width:30px">' + c + '</span></div></div>';
+      }
+      var minusDis = canRemoveRole(r.id) ? '' : 'disabled';
+      var plusDis = canAddRole(r.id) ? '' : 'disabled';
       return '<div class="panel"><div class="row">' +
         '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">' + esc(r.blurb || '') + '</span></div>' +
-        '<button class="stepbtn" data-role-minus="' + r.id + '">−</button>' +
+        '<button class="stepbtn" data-role-minus="' + r.id + '" ' + minusDis + '>−</button>' +
         '<span class="val" style="min-width:30px">' + c + '</span>' +
-        '<button class="stepbtn" data-role-plus="' + r.id + '">+</button>' +
+        '<button class="stepbtn" data-role-plus="' + r.id + '" ' + plusDis + '>+</button>' +
         '</div></div>';
     }).join('');
   }
   function cardCountBar() {
-    var have = draft.roleSet.length, need = draft.playerCount + draft.centerCount;
+    var have = draft.roleSet.length, need = neededCards();
     var cls = have === need ? 'good' : 'danger';
-    return '<div class="panel center-text"><b style="color:var(--' + cls + ')">' + have + ' / ' + need + ' cards</b></div>';
+    return '<div class="panel center-text"><b style="color:var(--' + cls + ')">' + have + ' / ' + need + ' cards</b>' +
+      (have === need ? ' ✓' : '') + '</div>';
   }
 
   function optionsBlock() {
@@ -2118,10 +2153,10 @@ h1 { text-shadow: 0 2px 18px rgba(178,59,59,.25); }
       el.addEventListener('click', function () { draft.mode = el.getAttribute('data-mode'); render(); });
     });
     [].forEach.call(app.querySelectorAll('[data-role-plus]'), function (el) {
-      el.addEventListener('click', function () { draft.roleSet.push(el.getAttribute('data-role-plus')); render(); });
+      el.addEventListener('click', function () { addRole(el.getAttribute('data-role-plus')); });
     });
     [].forEach.call(app.querySelectorAll('[data-role-minus]'), function (el) {
-      el.addEventListener('click', function () { var id = el.getAttribute('data-role-minus'); var i = draft.roleSet.indexOf(id); if (i !== -1) draft.roleSet.splice(i, 1); render(); });
+      el.addEventListener('click', function () { removeRole(el.getAttribute('data-role-minus')); });
     });
     [].forEach.call(app.querySelectorAll('[data-opt]'), function (el) {
       el.addEventListener('click', function () { var k = el.getAttribute('data-opt'); draft.options[k] = !draft.options[k]; render(); });
@@ -2171,7 +2206,7 @@ h1 { text-shadow: 0 2px 18px rgba(178,59,59,.25); }
       case 't-': draft.dayTimerSeconds = Math.max(0, (draft.dayTimerSeconds || 0) - 30); render(); break;
       case 'tt+': draft.turnTimerSeconds = Math.min(180, (draft.turnTimerSeconds || 0) + 15); render(); break;
       case 'tt-': draft.turnTimerSeconds = Math.max(0, (draft.turnTimerSeconds || 0) - 15); render(); break;
-      case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre; render(); break; }
+      case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre.slice(); else refitDeck(); render(); break; }
       case 'start': startGame(); break;
 
       // reveal
@@ -2217,11 +2252,25 @@ h1 { text-shadow: 0 2px 18px rgba(178,59,59,.25); }
     // resize names
     while (draft.playerNames.length < pc) draft.playerNames.push('Player ' + (draft.playerNames.length + 1));
     draft.playerNames = draft.playerNames.slice(0, pc);
-    // reload recommended set for the new count if available, else keep (validation will guide)
-    var pre = E.presetRoleSet(pc); if (pre) draft.roleSet = pre;
+    // Refit the deck to the new player count so it ALWAYS holds exactly players+center cards:
+    // load the recommended preset if one exists, else keep the chosen specials and re-pad/trim
+    // Villagers. The count can never be left wrong by a player-count change.
+    var pre = E.presetRoleSet(pc);
+    if (pre) { draft.roleSet = pre.slice(); }
+    else { refitDeck(); }
     if (draft.botCount > pc - 1) draft.botCount = pc - 1;
     applyBotNames(draft);
     render();
+  }
+  // Trim/pad Villagers so the deck holds exactly neededCards(); drop overflow specials if a lower
+  // player count can no longer fit them (Villagers removed first, then the last-added specials).
+  function refitDeck() {
+    var need = neededCards();
+    while (draft.roleSet.length > need) {
+      var vi = draft.roleSet.lastIndexOf('villager');
+      draft.roleSet.splice(vi !== -1 ? vi : draft.roleSet.length - 1, 1);
+    }
+    while (draft.roleSet.length < need) draft.roleSet.push('villager');
   }
   function setBots(n) {
     draft.botCount = Math.max(0, Math.min(draft.playerCount - 1, n));
