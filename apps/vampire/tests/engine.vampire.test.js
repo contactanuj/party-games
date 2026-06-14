@@ -70,6 +70,17 @@ section('config, presets, marks init');
   var allClarity = true; for (var i = 0; i < 5; i++) if (!s.marks.bySeat['p' + i]) allClarity = false;
   ok(allClarity, 'every seat starts with a Mark');
 })();
+(function () {
+  // The no-threat warning must recognise Vampire-team antagonists that aren't vampire-flagged.
+  function noThreatWarns(roleSet) {
+    var cc = E.defaultConfig(5); cc.roleSet = roleSet;
+    return E.validateConfig(cc).warnings.some(function (w) { return /is in the card set/.test(w); });
+  }
+  var fill = ['seer', 'villager', 'villager', 'villager', 'villager', 'villager'];
+  ok(!noThreatWarns(['renfield'].concat(fill)), 'Renfield (team vampire, not vampire-flagged) is NOT false-flagged');
+  ok(!noThreatWarns(['copycat'].concat(fill)), 'Copycat (computed team) is NOT false-flagged');
+  ok(noThreatWarns(['villager'].concat(fill)), 'an all-village vampire deck does warn');
+})();
 
 // ---------------------------------------------------------------------------
 section('vampire team win conditions');

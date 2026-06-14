@@ -307,8 +307,7 @@
   return {
     game: 'vampire',
     title: 'Vampire',
-    threatName: 'Vampire',                          // the deck's antagonist (drives setup warnings)
-    isThreat: function (r) { return !!(r && r.vampire); },
+    threatName: 'Vampire',                          // the deck's antagonist name (warning wording only)
     roles: villageBase.concat(vampire),
     presets: presets,
     centerCount: 3,

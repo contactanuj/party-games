@@ -134,6 +134,19 @@ section('config defaults & validation');
   var v = E.validateConfig(c);
   ok(v.ok, 'a no-werewolf set is still playable');
   ok(v.warnings.length > 0, 'a no-werewolf set warns');
+
+  // The no-threat warning keys off "opposes the village", not a single Werewolf flag, so a deck
+  // whose only antagonist is a Minion or a Tanner is NOT falsely flagged (free role editing makes
+  // such decks easy to build). Only a genuinely all-good deck should warn.
+  function noThreatWarns(roleSet) {
+    var cc = E.defaultConfig(5); cc.roleSet = roleSet;
+    return E.validateConfig(cc).warnings.some(function (w) { return /is in the card set/.test(w); });
+  }
+  var base = ['seer', 'robber', 'troublemaker', 'villager', 'villager', 'villager', 'villager'];
+  ok(noThreatWarns(['villager'].concat(base)), 'an all-village deck warns (no antagonist at all)');
+  ok(!noThreatWarns(['minion'].concat(base)), 'a Minion-only deck is NOT false-flagged (Minion is the threat)');
+  ok(!noThreatWarns(['tanner'].concat(base)), 'a Tanner-only deck is NOT false-flagged (Tanner wins solo)');
+  ok(!noThreatWarns(['werewolf'].concat(base)), 'a Werewolf deck is not flagged');
 })();
 
 // ---------------------------------------------------------------------------

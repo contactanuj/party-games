@@ -229,8 +229,7 @@
   return {
     game: 'alien',
     title: 'Alien',
-    threatName: 'Alien',                            // the deck's antagonist (drives setup warnings)
-    isThreat: function (r) { return !!(r && r.alien); },
+    threatName: 'Alien',                            // the deck's antagonist name (warning wording only)
     roles: villageBase.concat(alien),
     presets: presets,
     centerCount: 3,

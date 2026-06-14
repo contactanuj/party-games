@@ -179,12 +179,21 @@
         seen[key] = true;
       }
 
-      // At least one meaningful tension: warn if the deck has no THREAT role (the antagonist the
-      // village hunts). Detection + wording are per-game (def.isThreat / def.threatName) so games
-      // whose villain isn't a Werewolf (Vampire, Alien) name their OWN threat instead of always
-      // saying "Werewolf". Defaults to the werewolf flag for the Werewolf/Daybreak families.
+      // At least one meaningful tension: warn ONLY when the deck has no antagonist at all (so the
+      // village can win simply by no one dying). A "threat" is any role that opposes the good team:
+      // a solo winner (Tanner, Blob, Mortician, Assassin), a role on a non-village team (Werewolf,
+      // Minion, Vampire, Renfield, Alien), or a role whose team is computed at runtime (Copycat),
+      // which we can't rule out. Keying off team - not a single primary-threat flag - means the
+      // warning no longer false-alarms on a Minion/Tanner/Renfield-only deck, which free role
+      // editing now makes easy to build. `threatName` is per game purely for nicer wording; a game
+      // may still override detection with def.isThreat if it ever needs to.
       var threatName = def.threatName || 'Werewolf';
-      var isThreatRole = def.isThreat || function (r) { return !!(r && r.werewolf); };
+      var isThreatRole = def.isThreat || function (r) {
+        if (!r) return false;
+        if (r.solo === true) return true;
+        if (typeof r.team === 'function') return true;
+        return r.team !== 'village';
+      };
       var anyThreat = roleSet.some(function (id) { var r = REG[id]; return !!r && isThreatRole(r); });
       if (!anyThreat) warnings.push('No ' + threatName + ' is in the card set - the village can only win if no one dies.');
 
