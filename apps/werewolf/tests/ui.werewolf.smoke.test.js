@@ -109,22 +109,52 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
-console.log('\n# config integrity - deck always = players + center; cannot be set against the count');
+console.log('\n# config integrity - every role (incl. Villager) is freely editable; Start gated on exact count');
 (function () {
   function deck() { var m = html().match(/(\d+) \/ (\d+) cards/); return m ? { have: +m[1], need: +m[2] } : null; }
+  function start() { return byAct('start'); }
+  function rmin(id) { return nodes('[data-role-minus]').filter(function (n) { return n.getAttribute('data-role-minus') === id; })[0]; }
+  function rplus(id) { return nodes('[data-role-plus]').filter(function (n) { return n.getAttribute('data-role-plus') === id; })[0]; }
   clickAct('new');
-  // changing the player count always leaves a valid deck and an enabled Start
-  for (var i = 0; i < 6; i++) { if (byAct('pc+')) clickAct('pc+'); var d = deck(); ok(d && d.have === d.need, 'deck matches need after pc+ (' + JSON.stringify(d) + ')'); ok(byAct('start') && !byAct('start').disabled, 'Start enabled at a valid count'); }
-  for (var j = 0; j < 8; j++) { if (byAct('pc-')) clickAct('pc-'); var d2 = deck(); ok(d2 && d2.have === d2.need, 'deck matches need after pc-'); }
-  // adding a special role keeps the deck size locked (swaps out a Villager)
-  var before = deck();
-  var plus = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; })[0];
-  if (plus) { plus.click(); var after = deck(); ok(after.have === after.need && after.have === before.have, 'adding a role keeps the deck size locked'); }
-  // no matter how many adds, the deck can never exceed the needed count
-  for (var k = 0; k < 60; k++) { var p = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; }); if (!p.length) break; p[0].click(); }
+
+  // (a) every player count snaps to a balanced, startable deck (= players + center)
+  for (var i = 0; i < 6; i++) { if (byAct('pc+')) clickAct('pc+'); var d = deck(); ok(d && d.have === d.need, 'pc+ -> balanced deck ' + JSON.stringify(d)); ok(start() && !start().disabled, 'pc+ -> Start enabled'); }
+  for (var j = 0; j < 8; j++) { if (byAct('pc-')) clickAct('pc-'); var d2 = deck(); ok(d2 && d2.have === d2.need, 'pc- -> balanced deck ' + JSON.stringify(d2)); }
+
+  // (b) THE REGRESSION: the Villager (normal) role must be directly reducible
+  var vm = rmin('villager');
+  ok(!!vm && !vm.disabled, 'Villager has an ENABLED minus button (the reported bug: it had none)');
+  var bV = deck();
+  vm.click();
+  var aV = deck();
+  ok(aV && aV.have === bV.have - 1, 'removing a Villager lowers the deck count (' + JSON.stringify(bV) + ' -> ' + JSON.stringify(aV) + ')');
+  ok(aV.have < aV.need, 'deck is now short of the needed count');
+  ok(start() && start().disabled, 'Start is DISABLED while the deck is off-count');
+  ok(/Add 1 more card to start/.test(html()), 'Start button says exactly how many to add');
+
+  // (c) one-tap "Fill with Villagers" rebalances and re-enables Start
+  ok(!!byAct('fillv'), '"Fill with Villagers" offered while short');
+  clickAct('fillv');
   var d3 = deck();
-  ok(d3 && d3.have === d3.need, 'deck stays exactly = need after exhaustive adds (' + JSON.stringify(d3) + ')');
-  ok(byAct('start') && !byAct('start').disabled, 'still a startable (valid) configuration');
+  ok(d3 && d3.have === d3.need, 'Fill with Villagers restores the exact count');
+  ok(start() && !start().disabled, 'Start re-enabled after rebalancing');
+
+  // (d) adding a special past the exact count over-fills and re-disables Start with a remove hint
+  var p = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; })[0];
+  if (p) {
+    p.click();
+    var d4 = deck();
+    ok(d4 && d4.have > d4.need, 'adding past the count over-fills the deck (' + JSON.stringify(d4) + ')');
+    ok(start() && start().disabled, 'Start disabled when over-count');
+    ok(/Remove \d+ card/.test(html()), 'Start button says to remove cards');
+  }
+
+  // (e) per-role max-copies cap still holds; the Villager filler is the only uncapped role
+  clickAct('preset');
+  ok(/\(max \d+\)/.test(html()), 'capped roles show their max');
+  ok(rplus('villager') && !rplus('villager').disabled, 'Villager (filler) is never capped');
+  var d5 = deck();
+  ok(d5 && d5.have === d5.need, '"Use recommended" yields an exact, startable deck');
   clickAct('home');
 })();
 

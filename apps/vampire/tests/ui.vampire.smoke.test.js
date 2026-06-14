@@ -72,6 +72,35 @@ function playOneGame(label, botClicks) {
   clickAct('home');
 }
 
+console.log('\n# config integrity - every role (incl. Villager) is freely editable; Start gated on exact count');
+(function () {
+  function deck() { var m = html().match(/(\d+) \/ (\d+) cards/); return m ? { have: +m[1], need: +m[2] } : null; }
+  function start() { return byAct('start'); }
+  function rmin(id) { return nodes('[data-role-minus]').filter(function (n) { return n.getAttribute('data-role-minus') === id; })[0]; }
+  function rplus(id) { return nodes('[data-role-plus]').filter(function (n) { return n.getAttribute('data-role-plus') === id; })[0]; }
+  clickAct('new');
+  for (var i = 0; i < 6; i++) { if (byAct('pc+')) clickAct('pc+'); var d = deck(); ok(d && d.have === d.need, 'pc+ -> balanced deck ' + JSON.stringify(d)); ok(start() && !start().disabled, 'pc+ -> Start enabled'); }
+  for (var j = 0; j < 8; j++) { if (byAct('pc-')) clickAct('pc-'); var d2 = deck(); ok(d2 && d2.have === d2.need, 'pc- -> balanced deck ' + JSON.stringify(d2)); }
+  var vm = rmin('villager');
+  ok(!!vm && !vm.disabled, 'Villager has an ENABLED minus button (the reported bug: it had none)');
+  var bV = deck(); vm.click(); var aV = deck();
+  ok(aV && aV.have === bV.have - 1, 'removing a Villager lowers the deck count (' + JSON.stringify(bV) + ' -> ' + JSON.stringify(aV) + ')');
+  ok(aV.have < aV.need, 'deck is now short of the needed count');
+  ok(start() && start().disabled, 'Start is DISABLED while the deck is off-count');
+  ok(/Add 1 more card to start/.test(html()), 'Start button says exactly how many to add');
+  ok(!!byAct('fillv'), '"Fill with Villagers" offered while short');
+  clickAct('fillv'); var d3 = deck();
+  ok(d3 && d3.have === d3.need, 'Fill with Villagers restores the exact count');
+  ok(start() && !start().disabled, 'Start re-enabled after rebalancing');
+  var p = nodes('[data-role-plus]').filter(function (n) { return !n.disabled; })[0];
+  if (p) { p.click(); var d4 = deck(); ok(d4 && d4.have > d4.need, 'adding past the count over-fills the deck (' + JSON.stringify(d4) + ')'); ok(start() && start().disabled, 'Start disabled when over-count'); ok(/Remove \d+ card/.test(html()), 'Start button says to remove cards'); }
+  clickAct('preset');
+  ok(/\(max \d+\)/.test(html()), 'capped roles show their max');
+  ok(rplus('villager') && !rplus('villager').disabled, 'Villager (filler) is never capped');
+  var d5 = deck(); ok(d5 && d5.have === d5.need, '"Use recommended" yields an exact, startable deck');
+  clickAct('home');
+})();
+
 console.log('\n# Vampire UI smoke - full games, no-leak on shared screens');
 playOneGame('game A');
 playOneGame('game B (3 bots)', 3);

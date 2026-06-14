@@ -169,7 +169,7 @@
 
       // Validation + start (Start is disabled - not just an error at the bottom - until the setup is legal)
       renderValidation(v) +
-      '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : 'Fix the setup above to start') + '</button>'
+      '<button class="btn" data-act="start" ' + (v.ok ? '' : 'disabled') + '>' + (v.ok ? 'Start game' : startBlockedLabel()) + '</button>'
     );
   }
 
@@ -188,30 +188,30 @@
   function roleCounts() {
     var counts = {}; draft.roleSet.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; }); return counts;
   }
-  // The deck must ALWAYS hold exactly playerCount + centerCount cards (the rule of the game).
-  // Villagers are the filler: adding a special role swaps out a Villager, removing one swaps it
-  // back - so the count can never be configured against the player count.
+  // The deck must hold exactly playerCount + centerCount cards to START, but every role - the
+  // Villager included - is FREELY editable. Each +/- changes only the role you tapped (no hidden
+  // auto-swap). The deck size floats while you edit; the card-count bar shows how many to add or
+  // remove and Start stays disabled until the count is exact. This is what "respects the player
+  // count": you can build any mix you like, but you can never START an off-count game.
   function neededCards() { return draft.playerCount + draft.centerCount; }
   function countOf(id) { return draft.roleSet.filter(function (x) { return x === id; }).length; }
   function villagerCount() { return countOf('villager'); }
+  function hasVillager() { return !!REG['villager']; }
   function stepFor(id) { return id === 'mason' ? 2 : 1; } // Masons come as a pair
-  function canAddRole(id) {
-    if (id === 'villager') return false; // villagers are derived from the remainder
-    var r = REG[id], step = stepFor(id);
-    if (r && r.maxCopies != null && countOf(id) + step > r.maxCopies) return false;
-    return villagerCount() >= step; // need filler villagers to swap out
-  }
-  function canRemoveRole(id) { return id !== 'villager' && countOf(id) > 0; }
+  function maxCopiesOf(id) { var r = REG[id]; return (r && r.maxCopies != null) ? r.maxCopies : Infinity; }
+  // Adding is capped only by the role's own maxCopies; removing only by having one to remove.
+  function canAddRole(id) { return countOf(id) + stepFor(id) <= maxCopiesOf(id); }
+  function canRemoveRole(id) { return countOf(id) > 0; }
   function addRole(id) {
     if (!canAddRole(id)) return;
     var step = stepFor(id);
-    for (var i = 0; i < step; i++) { var vi = draft.roleSet.lastIndexOf('villager'); if (vi !== -1) draft.roleSet.splice(vi, 1); draft.roleSet.push(id); }
+    for (var i = 0; i < step; i++) draft.roleSet.push(id);
     render();
   }
   function removeRole(id) {
     if (!canRemoveRole(id)) return;
     var step = Math.min(stepFor(id), countOf(id));
-    for (var i = 0; i < step; i++) { var ri = draft.roleSet.indexOf(id); if (ri !== -1) draft.roleSet.splice(ri, 1); draft.roleSet.push('villager'); }
+    for (var i = 0; i < step; i++) { var ri = draft.roleSet.indexOf(id); if (ri !== -1) draft.roleSet.splice(ri, 1); }
     render();
   }
   function roleEditor() {
@@ -221,16 +221,12 @@
     });
     return ordered.map(function (r) {
       var c = counts[r.id] || 0;
-      if (r.id === 'villager') {
-        // derived filler - shown, not directly editable
-        return '<div class="panel"><div class="row">' +
-          '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">fills the deck to the right size</span></div>' +
-          '<span class="val" style="min-width:30px">' + c + '</span></div></div>';
-      }
       var minusDis = canRemoveRole(r.id) ? '' : 'disabled';
       var plusDis = canAddRole(r.id) ? '' : 'disabled';
+      var cap = maxCopiesOf(r.id);
+      var capNote = (cap !== Infinity && cap > 0) ? ' <span class="small muted">(max ' + cap + ')</span>' : '';
       return '<div class="panel"><div class="row">' +
-        '<div style="flex:1"><b>' + esc(r.name) + '</b> <span class="small muted">' + esc(r.blurb || '') + '</span></div>' +
+        '<div style="flex:1"><b>' + esc(r.name) + '</b>' + capNote + ' <span class="small muted">' + esc(r.blurb || '') + '</span></div>' +
         '<button class="stepbtn" data-role-minus="' + r.id + '" ' + minusDis + '>−</button>' +
         '<span class="val" style="min-width:30px">' + c + '</span>' +
         '<button class="stepbtn" data-role-plus="' + r.id + '" ' + plusDis + '>+</button>' +
@@ -239,9 +235,23 @@
   }
   function cardCountBar() {
     var have = draft.roleSet.length, need = neededCards();
-    var cls = have === need ? 'good' : 'danger';
-    return '<div class="panel center-text"><b style="color:var(--' + cls + ')">' + have + ' / ' + need + ' cards</b>' +
-      (have === need ? ' ✓' : '') + '</div>';
+    var diff = have - need;
+    var cls = diff === 0 ? 'good' : 'danger';
+    var msg = diff === 0 ? ' ✓'
+      : (diff < 0 ? ' - add ' + (-diff) + ' more card' + (-diff === 1 ? '' : 's')
+                  : ' - remove ' + diff + ' card' + (diff === 1 ? '' : 's'));
+    // One-tap balance: top up with Villagers when short (only when this game has a Villager role).
+    var fix = (diff < 0 && hasVillager())
+      ? ' <button class="btn ghost small" style="display:inline-block;width:auto;padding:4px 10px" data-act="fillv">Fill with Villagers</button>'
+      : '';
+    return '<div class="panel center-text"><b style="color:var(--' + cls + ')">' + have + ' / ' + need + ' cards' + esc(msg) + '</b>' + fix + '</div>';
+  }
+  // Label for the disabled Start button - tells the player exactly what to fix when it's the count.
+  function startBlockedLabel() {
+    var diff = draft.roleSet.length - neededCards();
+    if (diff < 0) return 'Add ' + (-diff) + ' more card' + (-diff === 1 ? '' : 's') + ' to start';
+    if (diff > 0) return 'Remove ' + diff + ' card' + (diff === 1 ? '' : 's') + ' to start';
+    return 'Fix the setup above to start';
   }
 
   function optionsBlock() {
@@ -642,6 +652,7 @@
       case 'tt+': draft.turnTimerSeconds = Math.min(180, (draft.turnTimerSeconds || 0) + 15); render(); break;
       case 'tt-': draft.turnTimerSeconds = Math.max(0, (draft.turnTimerSeconds || 0) - 15); render(); break;
       case 'preset': { var pre = E.presetRoleSet(draft.playerCount); if (pre) draft.roleSet = pre.slice(); else refitDeck(); render(); break; }
+      case 'fillv': { var need = neededCards(); while (draft.roleSet.length < need) draft.roleSet.push('villager'); render(); break; }
       case 'start': startGame(); break;
 
       // reveal
